@@ -8,20 +8,27 @@ var printarr = require("./printArray.js")
 field.setResolution(10, 10)
 var i
   , start = Date.now()
-for (i = 0; i < 100000; i++) {
-  var u = field.update2()
+for (i = 0; i < 2000; i++) {
+  var u = field.update()
 }
-//  printarr( u , 7)
-//  console.log('')
 console.log(Date.now() - start)
+printarr( u , 7)
+//console.log( u[50] )
+console.log('')
 
 
 
+/*
 var coeffs = [
     [0.0, -1.0, 0.0]
   , [-1.0, 4.0, -1.0]
   , [0.0, -1.0, 0.0]
 ]
+
+var m = 100
+, n = 150
+
+var A = Array.matrix(m, n, 1.1)
 
 var C = [
     [1.3, 2.3, 3.3, 4.3, 5.3, 4.3]
@@ -43,16 +50,36 @@ var C0 = [
   , [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 ]
 
-/*
-field.setResolution(6, 6)
+
+field.setResolution(m, n)
 var i
-for( i = 0; i < 2; i++) {
-  C = field.conv2(C, coeffs)
-  printarr(C, 6 )
-  //console.log(Ca)
-  console.log('')
+for( i = 0; i < 2000; i++) {
+  A = field.conv2(A, coeffs)
+
 }
-*/
+
+//printarr(C, 6 )
+console.log(A[50])
+console.log('')
+
+
+
+Array.matrix = function (m , n, initial) {
+  // Array extender function adds capability
+  // of initializing 2D matrices of mxn size
+  // to default value = initial
+  var a, i , j, mat = []
+  for (i = 0; i < m; i += 1) {
+    a = []
+    for (j = 0; j < n; j += 1) {
+      a[j] = initial
+    }
+    mat[i] = a
+  }
+  return mat
+}
+
+
 
 // ALTERNATE CONV2 TRIALS
 /*
