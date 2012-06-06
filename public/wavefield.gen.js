@@ -8,17 +8,15 @@ module.exports = function wavefield() {
     , dt = 0.1
     , dx = 1
     , gamma = 0.002 // decay factor
-    , vel = 1 // velocity
-    , dsz = 3 // droplet size
-    , da = 1  // droplet amplitude
-    , u
-    , un
-    , up
-    , dum1
-    , dum2
+    , vel = 1       // velocity
+    , dsz = 3       // droplet size
+    , da = 1        // droplet amplitude
+    , u             // main data array
+    , un            // next time step data array
+    , up            // previous time step data array
     , width
     , height
-    , coeffs = [ // 2d laplace operator
+    , coeffs = [   // 2d laplace operator
       [0, 1, 0]
     , [1, -4, 1]
     , [0, 1, 0]
@@ -27,46 +25,77 @@ module.exports = function wavefield() {
   var c2 = gamma * dt - 1
   var c3 = (dt*dt * vel*vel) / (dx*dx)
 
-  function update () {
-    var i, j
-    var dum2 = conv2(u, dum1, coeffs, height, width, 3, 1)
-    for (i = 0; i < height; ++i) {
-      for (j = 0; j < width; ++j) {
-        un[i][j] = c1 * u[i][j] + c2 * up[i][j] + c3 * dum2[i][j]
-        up[i][j] = u[i][j] // current becomes old
-        u[i][j] = un[i][j] // new becomes current
+  function update() {
+    // This combines the convolution algorithm and the
+    // _update PDE algorithm for speed. But it is harder
+    // to figure out whats up so the others are included
+    // for testing and debugging
+    var acc = 0
+      , row, col, i, j, k
+    for ( row = 0; row < height; row++ ) {
+      for ( col = 0; col < width; col++ ) {
+        for ( i = -1; i <= 1; i++ ) {
+          for ( j = -1; j <= 1; j++ ) {
+            if( row+i >= 0 && col+j >= 0
+                && row+i < height && col+j < width) {
+              k = u[ row+i ][ col+j ]
+              acc += k * coeffs[1+i][1+j]
+            }
+          }
+        }
+        un[row][col] = c1 * u[row][col] + c2 * up[row][col] + c3 * acc
+        up[row][col] = u[row][col] // current becomes old
+        u[row][col] = un[row][col] // new becomes current
+        acc = 0
       }
     }
-  return u
+    return u
   }
 
-function conv2(u, dum1, kernel, rows, cols, k, K) {
-  // u is data array, dum is a predefined array for out data
-  // kernel is the convolution kernel
-  // rows and cols are the max data dimensions
-  // k is the kxk kernel dimension and K is 1/2 * k
-  var i, ii, j, jj, m, mm, sum, n, nn
-  for(i=0; i < rows; ++i) {      // rows
-    for(j=0; j < cols; ++j) {    // columns
-      sum = 0                    // init to 0 before sum
-      for(m=0; m < k; ++m) {     // kernel rows
-        mm = k - 1 - m           // row index of flipped kernel
-        for(n=0; n < k; ++n) {   // kernel columns
-          nn = k - 1 - n         // column index of flipped kernel
-          // index of input signal, used for checking boundary
-          ii = i + (m - K)
-          jj = j + (n - K)
-          // ignore input samples which are out of bound
-          if( ii >= 0 && ii < rows && jj >= 0 && jj < cols )
-            dum1[i][j] += u[ii][jj] * kernel[mm][nn];
+  function _update () {
+    // Solves the wave equation PDE
+    // using convolution.
+    var row, col
+    var dum = _conv2(u, coeffs)
+    for (row = 0; col < height; ++row)
+      for (row = 0; col < width; ++col) {
+        un[row][col] = c1 * u[row][col] + c2 * up[row][col] + c3 * dum[row][col]
+        up[row][col] = u[row][col] // current becomes old
+        u[row][col] = un[row][col] // new becomes current
+      }
+    return u
+  }
+
+  function _conv2(image, kernel) {
+    // iterates over image, then over kernel and
+    // multiplies the flipped kernel coeffs
+    // with appropriate image values, sums them
+    // then adds into new array entry.
+    var out = Array.matrix(width, height, 0)
+    var accumulation = 0
+      , row, col, i, j, k
+    for ( row = 0; row < height; row++ ) {
+      for ( col = 0; col < width; col++ ) {
+        for ( i = -1; i <= 1; i++ ) {
+          for ( j = -1; j <= 1; j++ ) {
+            if( row+i >= 0 && col+j >= 0
+                && row+i < height && col+j < width) {
+              k = image[ row+i ][ col+j ]
+              accumulation += k * kernel[1+i][1+j]
+            }
+          }
         }
+        out[row][col] = accumulation
+        accumulation = 0
       }
     }
+    return out
   }
-  return dum1
-}
 
   Array.matrix = function (m , n, initial) {
+    // Array extender function adds capability
+    // of initializing 2D matrices of mxn size
+    // to default value = initial
     var a, i , j, mat = []
     for (i = 0; i < m; i += 1) {
       a = []
@@ -79,15 +108,18 @@ function conv2(u, dum1, kernel, rows, cols, k, K) {
   }
 
   function reset() {
+    // function matches the matrix calculation sizes to
+    // res size by init'ing new matrices.
     u = Array.matrix(width, height, 0)
     u[ Math.round(height/2) ][ Math.round(width/2) ] = 1
     up = Array.matrix(width, height, 0)
     un = Array.matrix(width, height, 0)
-    dum1 = Array.matrix(width, height, 0)
-    dum2 = Array.matrix(width, height, 0)
   }
 
   function setResolution (hRes, wRes) {
+    // when screen size is resized and upon init
+    // this does basic checking then calls reset
+    // to modify array sizes.
     var res = wRes * hRes
     if (res > 0 && res < 1000000 && (wRes != width || hRes != height)) {
       width = wRes

@@ -24,7 +24,7 @@ function mapdisplay(field) {
     return htmlmap
   }
 
-  function display(DOMElement, timeout) {
+  function start(DOMElement, timeout) {
     function animate() {
       DOMElement.innerHTML = mapfield()
       window.setTimeout(animate, timeout)
@@ -32,7 +32,17 @@ function mapdisplay(field) {
     animate()
   }
 
-  that.display = display
+  function startTEST(DOMElement, timeout) {
+    function animate() {
+      var ind = Math.floor(Math.random()*11)
+      DOMElement.innerHTML = ind
+      window.setTimeout(animate, timeout)
+    }
+    animate()
+  }
+
+  that.start = start
+  that.startTEST = startTEST
 
   return that
 
