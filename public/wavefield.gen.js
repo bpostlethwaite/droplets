@@ -2,7 +2,7 @@
 /*jshint laxcomma: true*/
 "use strict";
 
-function wavefield() {
+module.exports = function wavefield() {
 
   var that = {}
     , dt = 0.1
@@ -52,7 +52,7 @@ function conv2(u, dum1, kernel, rows, cols, k, K) {
       for(m=0; m < k; ++m) {     // kernel rows
         mm = k - 1 - m           // row index of flipped kernel
         for(n=0; n < k; ++n) {   // kernel columns
-          nn = k - 1 - n     // column index of flipped kernel
+          nn = k - 1 - n         // column index of flipped kernel
           // index of input signal, used for checking boundary
           ii = i + (m - K)
           jj = j + (n - K)
@@ -108,4 +108,3 @@ function conv2(u, dum1, kernel, rows, cols, k, K) {
 
   return that
 }
-
