@@ -46,8 +46,8 @@ jQuery(document).ready(function($) {
     console.log(droplet.x.toString().concat(" ", droplet.y.toString() ) )
   })
 
-  // Configure Display
-  map.display(el, 10)
+  // Start animation
+  map.startTEST(el, 10)
 
 
 
