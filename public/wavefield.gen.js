@@ -1,9 +1,9 @@
 /*jshint asi: true*/
 /*jshint laxcomma: true*/
-"use strict";
 
-module.exports = function wavefield() {
-
+function wavefield() {
+	"use strict";
+  
   var that = {}
     , dt = 0.1
     , dx = 1
@@ -36,8 +36,8 @@ module.exports = function wavefield() {
       for ( col = 0; col < width; col++ ) {
         for ( i = -1; i <= 1; i++ ) {
           for ( j = -1; j <= 1; j++ ) {
-            if( row+i >= 0 && col+j >= 0
-                && row+i < height && col+j < width) {
+            if( row+i >= 0 && col+j >= 0 &&
+                row+i < height && col+j < width) {
               k = u[ row+i ][ col+j ]
               acc += k * coeffs[1+i][1+j]
             }
@@ -78,8 +78,8 @@ module.exports = function wavefield() {
       for ( col = 0; col < width; col++ ) {
         for ( i = -1; i <= 1; i++ ) {
           for ( j = -1; j <= 1; j++ ) {
-            if( row+i >= 0 && col+j >= 0
-                && row+i < height && col+j < width) {
+            if( row+i >= 0 && col+j >= 0 &&
+                row+i < height && col+j < width) {
               k = image[ row+i ][ col+j ]
               accumulation += k * kernel[1+i][1+j]
             }

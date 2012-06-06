@@ -47,7 +47,7 @@ jQuery(document).ready(function($) {
   })
 
   // Start animation
-  map.startTEST(el, 10)
+  map.start(el, 1000)
 
 
 
