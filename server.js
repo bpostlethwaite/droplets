@@ -1,14 +1,20 @@
-var static = require("node-static")
-, app = require("http").createServer(handler)
-, io  = require("socket.io").listen(app)
+/*jshint asi: true*/
+/*jshint laxcomma: true*/
+"use strict";
 
-app.listen(8081)
+var server = require("node-static")
+  , app = require("http").createServer(handler)
+  , io  = require("socket.io").listen(app)
+  
+console.log(process.env.C9_PORT)
+
+app.listen(process.env.C9_PORT)
 console.log("Static server listening on http://192.168.1.113:8081")
 
 //
 // BORING SERVER
 //
-var clientFiles = new static.Server("./public")
+var clientFiles = new server.Server("./public")
 function handler (request, response) {
   request.addListener('end', function () {
     //
@@ -38,8 +44,3 @@ io.sockets.on('connection', function (socket) {
   })
 })
 
-
-
-/*
-
-*/
