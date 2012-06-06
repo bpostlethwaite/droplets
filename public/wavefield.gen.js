@@ -1,9 +1,9 @@
 /*jshint asi: true*/
 /*jshint laxcomma: true*/
 
-function wavefield() {
+module.exports = function wavefield() {
 	"use strict";
-  
+
   var that = {}
     , dt = 0.1
     , dx = 1
@@ -25,11 +25,27 @@ function wavefield() {
   var c2 = gamma * dt - 1
   var c3 = (dt*dt * vel*vel) / (dx*dx)
 
-  function update() {
-    // This combines the convolution algorithm and the
-    // _update PDE algorithm for speed. But it is harder
-    // to figure out whats up so the others are included
-    // for testing and debugging
+
+  function update () {
+    // Solves the wave equation PDE
+    // using convolution.
+    var row, col
+    var dum = conv2(u, coeffs)
+    for (row = 0; row < height; ++row)
+      for (col = 0; col < width; ++col) {
+        un[row][col] = c1 * u[row][col] + c2 * up[row][col] + c3 * dum[row][col]
+        up[row][col] = u[row][col] // current becomes old
+        u[row][col] = un[row][col] // new becomes current
+      }
+    return u
+  }
+
+  function conv2(image, kernel) {
+    // iterates over image, then over kernel and
+    // multiplies the flipped kernel coeffs
+    // with appropriate image values, sums them
+    // then adds into new array entry.
+    var out = Array.matrix(width, height, 0)
     var acc = 0
       , row, col, i, j, k
     for ( row = 0; row < height; row++ ) {
@@ -38,55 +54,13 @@ function wavefield() {
           for ( j = -1; j <= 1; j++ ) {
             if( row+i >= 0 && col+j >= 0 &&
                 row+i < height && col+j < width) {
-              k = u[ row+i ][ col+j ]
-              acc += k * coeffs[1+i][1+j]
-            }
-          }
-        }
-        un[row][col] = c1 * u[row][col] + c2 * up[row][col] + c3 * acc
-        up[row][col] = u[row][col] // current becomes old
-        u[row][col] = un[row][col] // new becomes current
-        acc = 0
-      }
-    }
-    return u
-  }
-
-  function _update () {
-    // Solves the wave equation PDE
-    // using convolution.
-    var row, col
-    var dum = _conv2(u, coeffs)
-    for (row = 0; col < height; ++row)
-      for (row = 0; col < width; ++col) {
-        un[row][col] = c1 * u[row][col] + c2 * up[row][col] + c3 * dum[row][col]
-        up[row][col] = u[row][col] // current becomes old
-        u[row][col] = un[row][col] // new becomes current
-      }
-    return u
-  }
-
-  function _conv2(image, kernel) {
-    // iterates over image, then over kernel and
-    // multiplies the flipped kernel coeffs
-    // with appropriate image values, sums them
-    // then adds into new array entry.
-    var out = Array.matrix(width, height, 0)
-    var accumulation = 0
-      , row, col, i, j, k
-    for ( row = 0; row < height; row++ ) {
-      for ( col = 0; col < width; col++ ) {
-        for ( i = -1; i <= 1; i++ ) {
-          for ( j = -1; j <= 1; j++ ) {
-            if( row+i >= 0 && col+j >= 0 &&
-                row+i < height && col+j < width) {
               k = image[ row+i ][ col+j ]
-              accumulation += k * kernel[1+i][1+j]
+              acc += k * kernel[1+i][1+j]
             }
           }
         }
-        out[row][col] = accumulation
-        accumulation = 0
+        out[row][col] = acc
+        acc = 0
       }
     }
     return out
@@ -136,6 +110,7 @@ function wavefield() {
 
   that.setResolution = setResolution
   that.update = update
+  that.conv2 = conv2
   that.getdims = getdims
 
   return that
