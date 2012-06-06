@@ -1,8 +1,11 @@
+/*jshint asi: true*/
+/*jshint laxcomma: true*/
+"use strict";
 jQuery(document).ready(function($) {
-
   // Set vars, dims and elements
   var el = document.getElementById('wave')
-  var socket = io.connect('http://192.168.1.113:8081')
+  //var socket = io.connect('http://192.168.1.113:8081')
+  var socket = io.connect("http://droplets.benjp.c9.io")
   var field = wavefield()
   var map = mapdisplay(field)
 
@@ -17,9 +20,9 @@ jQuery(document).ready(function($) {
         div.innerHTML = "M"
         document.body.appendChild(div)
         var dims = {
-	  width: div.offsetWidth,
-	  height: div.offsetHeight
-	}
+          width: div.offsetWidth,
+          height: div.offsetHeight
+        }
         document.body.removeChild(div)
         return dims
       }()

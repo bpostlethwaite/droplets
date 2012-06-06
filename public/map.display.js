@@ -1,4 +1,6 @@
-
+/*jshint asi: true*/
+/*jshint laxcomma: true*/
+"use strict";
 function mapdisplay(field) {
 
   var that = {}

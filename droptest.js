@@ -1,5 +1,6 @@
-"use strict"
-
+/*jshint asi: true*/
+/*jshint laxcomma: true*/
+"use strict";
 var field = require('./public/wavefield.gen.js')()
 
 

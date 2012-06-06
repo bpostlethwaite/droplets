@@ -1,6 +1,8 @@
+/*jshint asi: true*/
+/*jshint laxcomma: true*/
+"use strict";
 
 function wavefield() {
-"use strict"
 
   var that = {}
     , dt = 0.1
@@ -30,9 +32,9 @@ function wavefield() {
     var dum2 = conv2(u, dum1, coeffs, height, width, 3, 1)
     for (i = 0; i < height; ++i) {
       for (j = 0; j < width; ++j) {
-        un[i,j] = c1 * u[i,j] + c2 * up[i,j] + c3 * dum2[i,j]
-        up[i,j] = u[i,j] // current becomes old
-        u[i,j] = un[i,j] // new becomes current
+        un[i][j] = c1 * u[i][j] + c2 * up[i][j] + c3 * dum2[i][j]
+        up[i][j] = u[i][j] // current becomes old
+        u[i][j] = un[i][j] // new becomes current
       }
     }
   return u
