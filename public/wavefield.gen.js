@@ -1,7 +1,7 @@
 /*jshint asi: true*/
 /*jshint laxcomma: true*/
 
-module.exports = function wavefield() {
+function wavefield() {
 	"use strict";
 
   var that = {}
@@ -45,7 +45,7 @@ module.exports = function wavefield() {
     // multiplies the flipped kernel coeffs
     // with appropriate image values, sums them
     // then adds into new array entry.
-    var out = Array.matrix(width, height, 0)
+    var out = Array.matrix(height, width, 0)
     var acc = 0
       , row, col, i, j, k
     for ( row = 0; row < height; row++ ) {
@@ -84,10 +84,10 @@ module.exports = function wavefield() {
   function reset() {
     // function matches the matrix calculation sizes to
     // res size by init'ing new matrices.
-    u = Array.matrix(width, height, 0)
+    u = Array.matrix(height, width, 0)
     u[ Math.round(height/2) ][ Math.round(width/2) ] = 1
-    up = Array.matrix(width, height, 0)
-    un = Array.matrix(width, height, 0)
+    up = Array.matrix(height, width, 0)
+    un = Array.matrix(height, width, 0)
   }
 
   function setResolution (hRes, wRes) {
