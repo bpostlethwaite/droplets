@@ -5,10 +5,10 @@ var field = require("./public/wavefield.gen.js")()
 var printarr = require("./printArray.js")
 
 
-field.setResolution(10, 10)
+field.setResolution(15, 10)
 var i
   , start = Date.now()
-for (i = 0; i < 2000; i++) {
+for (i = 0; i < 2; i++) {
   var u = field.update()
 }
 console.log(Date.now() - start)

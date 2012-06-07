@@ -2,22 +2,15 @@
 vel = 1; % speed of wave;
 dx = 1; % space step;
 dt = 0.1; % time step;
-m = 10;
-n = 10; % sizes
-tm = 1000; % time
+m = 50;
+n = 250; % sizes
 gamma = 0.002; % decay factor
 
 dp=0.01; % droplet probability per one time sterp
 dsz=2; % droplet size
 da= 0.5; % droplet amplitude
 
-x=dx:dx:m;
-y=dx:dx:n; % space
-
-Lx=length(x);
-Ly=length(y);
-
-u=zeros(Ly,Lx); % initial value
+u=zeros(m,n); % initial value
 uo=u; % previous = curent => velocties =0
 
 D=[0 1 0; 1 -4 1; 0 1 0]; % 2d laplace operator
