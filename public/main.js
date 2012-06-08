@@ -8,52 +8,66 @@ jQuery(document).ready(function($) {
   var socket = io.connect("http://droplets.benjp.c9.io")
   var field = wavefield()
   var map = mapdisplay(field)
-
-  $(window)
-    .resize(function(e) {
-      var charDims = function() {
-        var div = document.createElement("div")
-        div.style.position = "absolute"
-        div.style.visibility = "hidden"
-        div.style.fontFamily = "Courier New"
-        div.style.fontSize = "11px"
-        div.innerHTML = "M"
-        document.body.appendChild(div)
-        var dims = {
-          width: div.offsetWidth,
-          height: div.offsetHeight
-        }
-        document.body.removeChild(div)
-        return dims
-      }()
-      // this won't be perfect, as the screen dims won't often be evenly disible
-      field.setResolution(Math.round($(window).height() / charDims.height)
-                           , Math.round($(window).width() / charDims.width))
-    })
-    .trigger('resize')
-
-
+  var pixel2Height
+  var pixel2Width
+  $(window).resize(function(e) {
+    var dimfuncs = pixel2dim()
+    pixel2Height = dimfuncs[0]
+    pixel2Width = dimfuncs[1]
+    field.setResolution(pixel2Height($(window).height()), pixel2Width($(window).width()))
+    console.log(pixel2Height($(window).height()), pixel2Width($(window).width()))
+  }).trigger('resize')
   // Bindings
-  $('html').click( function (evt) {
-    var droplet = {}
-    droplet.x = evt.pageX
-    droplet.y = evt.pageY
-    socket.emit('clientDroplet', droplet)
-    console.log( droplet.x.toString().concat(" ", droplet.y.toString() ) )
-  })
+  $('html').click(function(evt) {
+    var d = {},
+        xpix = evt.pageX,
+        ypix = evt.pageY
+         d.x = xpix / $(window).width() // turn into percentage
+        d.y = ypix / $(window).height() // before sending
+        socket.emit('clientDroplet', d)
+         field.addDroplet(pixel2Height(ypix), pixel2Width(xpix))
 
-  socket.on('newDroplet', function (droplet) {
-    console.log(droplet.x.toString().concat(" ", droplet.y.toString() ) )
-  })
+        //console.log( pixel2Height (d.y ), pixel2Width( d.x ) )
 
+  })
+  socket.on('newDroplet', function(d) {
+    var ypix = Math.round(d.y * $(window).height()),
+        xpix = Math.round(d.x * $(window).width())
+         field.addDroplet(ypix, xpix)
+         console.log(pixel2Height(ypix), pixel2Width(xpix))
+  })
   // Start animation
-  map.start(el, 1000)
-
-
-
+  //field.addDroplet( Math.round( field.getHeight()/2 )
+  //								,	Math.round( field.getWidth()/2 ) )
+  map.start(el, 15)
 }) // end JQuery
 
-
+function pixel2dim() {
+  // returns two function in an array. One for returning the row height
+  // for a given pixel, the other for returning the column width for a given
+  // x dimension pixel. The reason for the returning of functions is so this
+  // main pixel2dim func can be created less frequently (only on screen resize)
+  // than the more simple returned funcs who use the screen size data
+  // in the closure to output the rows and cols.
+  var div = document.createElement("div")
+  div.style.position = "absolute"
+  div.style.visibility = "hidden"
+  div.style.fontFamily = "Courier New"
+  div.style.fontSize = "11px"
+  div.innerHTML = "M"
+  document.body.appendChild(div)
+  var dim = {
+    width: div.offsetWidth,
+    height: div.offsetHeight
+  }
+  document.body.removeChild(div)
+  // this won't be perfect, as the screen dims won't often be evenly divisible
+  return [function(pixelHeight) {
+    return Math.round(pixelHeight / dim.height)
+  }, function(pixelWidth) {
+    return Math.round(pixelWidth / dim.width)
+  }]
+}
 // If using an overlay, or area you don't want to
 // receive mouseclicks from use:
 // $('#sacredcontainer').click(function(event){

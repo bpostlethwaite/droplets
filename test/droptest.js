@@ -1,8 +1,8 @@
 /*jshint asi: true*/
 /*jshint laxcomma: true*/
 "use strict";
-var field = require("./public/wavefield.gen.js")()
-var printarr = require("./printArray.js")
+var field = require("../public/wavefield.gen.js")()
+var printarr = require("../printArray.js")
 
 
 field.setResolution(15, 10)
