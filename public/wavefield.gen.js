@@ -8,9 +8,9 @@ function wavefield() {
     , dt = 0.1
     , dx = 1
     , gamma = 0.002 // decay factor
-    , vel = 1       // velocity
+    , vel = 2       // velocity
     , dsz = 3       // droplet size
-    , da = 1        // droplet amplitude
+    , mag = 1        // droplet magnitude
     , u             // main data array
     , un            // next time step data array
     , up            // previous time step data array
@@ -39,6 +39,13 @@ function wavefield() {
       }
     return u
   }
+
+	function addDroplet (row, col) {
+		// adds a new gaussian droplet to u
+		// at specified coordinates.
+		// (For now just adds a point source)
+		u[row][col] += mag
+	}
 
   function conv2(image, kernel) {
     // iterates over image, then over kernel and
@@ -85,7 +92,7 @@ function wavefield() {
     // function matches the matrix calculation sizes to
     // res size by init'ing new matrices.
     u = Array.matrix(height, width, 0)
-    u[ Math.round(height/2) ][ Math.round(width/2) ] = 1
+
     up = Array.matrix(height, width, 0)
     un = Array.matrix(height, width, 0)
   }
@@ -104,14 +111,19 @@ function wavefield() {
     return false
   }
 
-  function getdims () {
-    return [height, width]
+  function getHeight () {
+    return height
+  }
+
+	function getWidth () {
+    return width
   }
 
   that.setResolution = setResolution
   that.update = update
   that.conv2 = conv2
-  that.getdims = getdims
-
+  that.getHeight = getHeight
+  that.getWidth = getWidth
+  that.addDroplet = addDroplet
   return that
 }
