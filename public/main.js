@@ -4,8 +4,7 @@
 jQuery(document).ready(function($) {
   // Set vars, dims and elements
   var el = document.getElementById('wave')
-  //var socket = io.connect('http://192.168.1.113:8081')
-  var socket = io.connect("http://droplets.benjp.c9.io")
+  var socket = io.connect("50.116.7.59")
   var field = wavefield()
   var map = mapdisplay(field)
   var pixel2Height
