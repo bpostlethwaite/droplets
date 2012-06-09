@@ -8,7 +8,7 @@ function wavefield() {
     , dt = 0.1
     , dx = 1
     , gamma = 0.002 // decay factor
-    , vel = 2       // velocity
+    , vel = 1       // velocity
     , dsz = 3       // droplet size
     , mag = 1        // droplet magnitude
     , u             // main data array

@@ -10,35 +10,34 @@ jQuery(document).ready(function($) {
   var map = mapdisplay(field)
   var pixel2Height
   var pixel2Width
+
+// ON RESIZE //////////////////////////////////////////////////////////////
   $(window).resize(function(e) {
     var dimfuncs = pixel2dim()
     pixel2Height = dimfuncs[0]
     pixel2Width = dimfuncs[1]
     field.setResolution(pixel2Height($(window).height()), pixel2Width($(window).width()))
-    console.log(pixel2Height($(window).height()), pixel2Width($(window).width()))
   }).trigger('resize')
-  // Bindings
+
+// BINDINGS ///////////////////////////////////////////////////////////////
   $('html').click(function(evt) {
-    var d = {},
-        xpix = evt.pageX,
-        ypix = evt.pageY
-         d.x = xpix / $(window).width() // turn into percentage
-        d.y = ypix / $(window).height() // before sending
-        socket.emit('clientDroplet', d)
-         field.addDroplet(pixel2Height(ypix), pixel2Width(xpix))
-
-        //console.log( pixel2Height (d.y ), pixel2Width( d.x ) )
-
+    var d = {}
+      , xpix = evt.pageX
+      , ypix = evt.pageY
+    d.x = xpix / $(window).width() // turn into percentage
+    d.y = ypix / $(window).height() // before sending
+    socket.emit('clientDroplet', d)
+    field.addDroplet(pixel2Height(ypix), pixel2Width(xpix))
   })
+
+// SOCKETS ////////////////////////////////////////////////////////////////
   socket.on('newDroplet', function(d) {
-    var ypix = Math.round(d.y * $(window).height()),
-        xpix = Math.round(d.x * $(window).width())
-         field.addDroplet(ypix, xpix)
-         console.log(pixel2Height(ypix), pixel2Width(xpix))
+    var ypix = Math.round(d.y * $(window).height()) //recover from percentage
+      , xpix = Math.round(d.x * $(window).width()) // to this user resolution
+    field.addDroplet(pixel2Height(ypix), pixel2Width(xpix))
   })
-  // Start animation
-  //field.addDroplet( Math.round( field.getHeight()/2 )
-  //								,	Math.round( field.getWidth()/2 ) )
+
+// START ANIMATION /////////////////////////////////////////////////////////
   map.start(el, 15)
 }) // end JQuery
 
