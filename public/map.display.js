@@ -47,15 +47,39 @@ function mapdisplay(field) {
     animate()
   }
 
-  function startTEST(DOMElement, timeout) {
-    function animate() {
-      var ind = Math.floor(Math.random() * 11)
-      DOMElement.innerHTML = ind
-      window.setTimeout(animate, timeout)
+  function colorLuminance(hex, lum) {
+    // validate hex string
+    hex = String(hex).replace(/[^0-9a-f]/gi, '')
+    if (hex.length < 6) {
+      hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2]
     }
-    animate()
+    lum = lum || 0
+    // convert to decimal and change luminosity
+    var rgb = "#", c, i
+    for (i = 0; i < 3; i++) {
+      c = parseInt(hex.substr(i*2,2), 16)
+      c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16)
+      rgb += ("00"+c).substr(c.length)
+    }
+    return rgb
   }
+
+  function BuildColorGrad(baseShade, numElem, lum) {
+    // Build the gradient variable from a starting darkest shade.
+    // Goes up in lum/numElement increments, where lum
+    // is percent / 100 (1 = 100% increase)
+    var i
+      , nc
+      , inc = lum/numElem
+      , sp1 = '<span style="color:'
+      , sp2 = '">'
+      , char = "X"
+      , sp3 = "</span>"
+    for (i = 0; i < numElem; ++i) {
+      nc = colorLuminance(baseShade, i*inc)
+    }
+  }
+
   that.start = start
-  that.startTEST = startTEST
   return that
 }
