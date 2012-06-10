@@ -6,13 +6,10 @@ var server = require("node-static")
   , io = require("socket.io").listen(app)
 
 // Set logging level
-io.set('log level', 2)
-// Listen
-var host = "50.116.7.59"
-  , port = 80
-app.listen(port)
-console.log("Static server listening on " +  host)
-
+io.set('log level', 1)
+// Listen on port
+app.listen(process.env.C9_PORT)
+console.log("Static server listening on " + process.env.C9_PORT)
 //
 // BORING SERVER
 //
@@ -41,5 +38,6 @@ function handler(request, response) {
 io.sockets.on('connection', function(socket) {
   socket.on('clientDroplet', function(data) {
     socket.broadcast.emit('newDroplet', data)
+    console.log(data.y, data.x)
   })
 })

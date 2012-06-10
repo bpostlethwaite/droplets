@@ -4,7 +4,7 @@
 jQuery(document).ready(function($) {
   // Set vars, dims and elements
   var el = document.getElementById('wave')
-  var socket = io.connect("50.116.7.59")
+  var socket = io.connect("http://droplets.benjp.c9.io")
   var field = wavefield()
   var map = mapdisplay(field)
   var pixel2Height
@@ -66,6 +66,10 @@ function pixel2dim() {
     return Math.round(pixelWidth / dim.width)
   }]
 }
+
+
+
+
 // If using an overlay, or area you don't want to
 // receive mouseclicks from use:
 // $('#sacredcontainer').click(function(event){
