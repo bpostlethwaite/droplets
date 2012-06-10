@@ -8,8 +8,8 @@ var server = require("node-static")
 // Set logging level
 io.set('log level', 1)
 // Listen on port
-app.listen(process.env.C9_PORT)
-console.log("Static server listening on " + process.env.C9_PORT)
+app.listen(process.env.PORT)
+console.log("Static server listening on " + process.env.PORT)
 //
 // BORING SERVER
 //
