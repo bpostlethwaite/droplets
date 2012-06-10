@@ -9,13 +9,28 @@ jQuery(document).ready(function($) {
   var map = mapdisplay(field)
   var pixel2Height
   var pixel2Width
+  var fragment
+
 
 // ON RESIZE //////////////////////////////////////////////////////////////
   $(window).resize(function(e) {
-    var dimfuncs = pixel2dim()
+    var row, col, cspan
+      , dimfuncs = pixel2dim()
     pixel2Height = dimfuncs[0]
     pixel2Width = dimfuncs[1]
-    field.setResolution(pixel2Height($(window).height()), pixel2Width($(window).width()))
+    var rows = pixel2Height($(window).height())
+      , cols = pixel2Width($(window).width())
+    fragment = document.createDocumentFragment()
+    for (row = 0; row < rows; ++row) {
+      for (col = 0; col < cols; ++col) {
+        cspan = document.createElement("span")
+        cspan.innerHTML = "X"
+        fragment.appendChild( cspan )
+      }
+    fragment.appendChild( document.createElement('br') )
+    }
+    el.appendChild = fragment
+    field.setResolution(rows, cols)
   }).trigger('resize')
 
 // BINDINGS ///////////////////////////////////////////////////////////////
@@ -37,7 +52,7 @@ jQuery(document).ready(function($) {
   })
 
 // START ANIMATION /////////////////////////////////////////////////////////
-  map.start(el, 15)
+  //map.start(el, 15)
 }) // end JQuery
 
 function pixel2dim() {
