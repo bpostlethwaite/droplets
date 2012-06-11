@@ -7,24 +7,21 @@ jQuery(document).ready(function($) {
 //  var socket = io.connect("http://droplets.benjp.c9.io")
   var socket = io.connect("192.168.1.113:8081")
   var field = wavefield()
-  var canvas = document.getElementById('wave')
+  var canvas = document.getElementById('canvas')
   var c = canvas.getContext('2d')
   var xlen = 10
   var ylen = 10
-  var rows
-  var cols
-  var colorgrad = buildColorGrad("#05050D", 26, 18)
+  var maxval = 40 // +/- 4
+  var colorgrad = buildColorGrad("#05050D", maxval*2 + 1, 18)
 
 // ON RESIZE //////////////////////////////////////////////////////////////
   $(window).resize(function(e) {
-    rows = Math.floor(window.innerHeight / ylen)
-    cols = Math.floor(window.innerWidth / xlen)
-    c.canvas.width  = window.innerWidth
-    c.canvas.height = window.innerHeight
+    var rows = Math.floor(window.innerHeight / ylen)
+      , cols = Math.floor(window.innerWidth / xlen)
     field.setResolution(rows, cols)
-    console.log(rows,cols)
+    canvas.width  = window.innerWidth
+    canvas.height = window.innerHeight
   }).trigger('resize')
-
 
 // BINDINGS ///////////////////////////////////////////////////////////////
   $('html').click(function(evt) {
@@ -34,7 +31,7 @@ jQuery(document).ready(function($) {
     d.x = xpix / window.innerWidth // turn into percentage
     d.y = ypix / window.innerHeight // before sending
     socket.emit('clientDroplet', d)
-    field.addDroplet( Math.floor(ypix / ylen), Math.floor(xpix / xlen) )
+    field.addDroplet( (ypix / ylen) | 0 , (xpix / xlen) | 0 )
   })
 
 // SOCKETS ////////////////////////////////////////////////////////////////
@@ -46,35 +43,29 @@ jQuery(document).ready(function($) {
 
   // Canvas /////////////////////////////////////////////////////////////////
   function start(fps) {
-    var s = Date.now()
-    var row, col, ind, val, round
-    var f = field.update()
+    //var s = Date.now()
+    var row, col, ind, val
+      , f = field.update()
+      , rows = field.getHeight()
+      , cols = field.getWidth()
     c.clearRect(0, 0, canvas.width, canvas.height)
     for (row = 0; row < rows; ++row) {
       for (col = 0; col < cols; ++col) {
-        val = f[row][col]
-        // The following should result in an indices range from
-        // -12 : 13 <add 12 at end to make it indexible>
-        round = Math[val < 0 ? 'ceil' : 'floor'] // symmetric behaviour
-        if (Math.abs(val) < 1) {
-          ind = round(val * 10)
+        val = f[row][col] * 10
+        ind = val | 0  // floor if > 0, ceil if < 0
+        if (Math.abs(ind) > maxval) {
+          ind = maxval * (ind < 0 ? -1 : 1)
         }
-        else if (Math.abs(val) < 2) {
-          ind = round(val * 3) + 7 * (val < 0 ? -1 : 1)
-        }
-        else if (val <= -2 ) ind = -13
-        else ind = 13
-        ind += 13 // start ind at index 0
-        // ind 13 is middle value (0 value)
+        ind += 40 // start ind at index 0
         c.fillStyle = colorgrad[ind]
         c.fillRect(col*xlen, row*ylen, xlen, ylen)
       }
     }
-    console.log( Date.now() - s )
+    //console.log( Date.now() - s )
     setInterval(start, fps)
   }
   // START ANIMATION /////////////////////////////////////////////////////////
-  start(100)
+  start(150)
 }) // end JQuery
 
 // HELPER FUNCS //////////////////////////////////////////////////////////
