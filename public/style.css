@@ -29,11 +29,7 @@ body * {
     font-size: 12px;
     line-height: 16px;
     font-family: "Courier New";
-    color: #444;
-}
-body.smaller * {
-    font-size: 11px;
-    line-height: 15px;
+    color: #DBA118;
 }
 
 
@@ -42,26 +38,22 @@ body.smaller * {
 }
 #overlay {
     position: absolute;
-    top: 63px;
+    top: 60px;
     left: 70px;
     pointer-events: none;
     z-index: 100;
 }
 #overlay > div {
-    background: white;
+    background: rgb(31, 29, 30); /* The Fallback */
+    background: rgba(31, 29, 30, 0.5);
     /*padding: 0 27px 0 22px;*/
     padding: 0 21px;
     pointer-events: auto;
 }
 #card {
-    width: 287px;
-}
-#controls {
-    display: inline-block;
-/*background: none !important;*/
-}
-body.smaller #overlay {
-    top: 61px;
+    width: 180px;
+    -moz-border-radius: 15px;
+    border-radius: 15px;
 }
 
 h1, h2, p  {
@@ -71,7 +63,6 @@ h2 {
     font-weight: normal;
 }
 dd {
-    text-indent: -4px;
 }
 dt {
     /*text-indent: -4px;*/
@@ -79,31 +70,110 @@ dt {
     text-align: right;
 }
 
+.container {
+	overflow: hidden;
+	width:960px;
+	height:300px;
+	margin:0 30px;
+	position:absolute;
+        top: 60px;
+        left: 120px;
+        z-index: 100;
+}
+}
 
-button#clear {
-    background: red;
-    color: white;
-    font-weight: bold;
-    padding: 6px 7px;
-    border: 1px solid rgb(240, 0, 0);
-    cursor: pointer;
-    -webkit-box-shadow: 	2px 2px 0px 0px rgb(210, 210, 210);
-    -moz-box-shadow: 		2px 2px 0px 0px rgb(210, 210, 210);
-    box-shadow: 			2px 2px 0px 0px rgb(210, 210, 210);
+.line1 {
+	background:#E3DD29;
+	width:0px;
+	height:1px;
 }
-button#clear:hover {
-    position: relative;
-    left: -1px;
-    top: -1px;
-    -webkit-box-shadow: 3px 3px 0px 0px rgb(220, 220, 220);
-    -moz-box-shadow: 	3px 3px 0px 0px rgb(220, 220, 220);
-    box-shadow: 		3px 3px 0px 0px rgb(220, 220, 220);
+.line1 {
+	-moz-transform:rotate(0deg);
+	-moz-transform-origin: 0 -2em;
+	-moz-animation:move 1s linear forwards;
+
+	-webkit-transform:rotate(0deg);
+	-webkit-transform-origin: 0 -2em;
+	-webkit-animation:move 1s linear forwards;
 }
-button#clear:active {
-    position: relative;
-    left: 1px;
-    top: 1px;
-    -webkit-box-shadow: 0px 0px;
-    -moz-box-shadow: 	0px 0px;
-    box-shadow: 		0px 0px;
+
+.ball1a, .ball1b {
+	background-color:#FFF700;
+	background-image: -moz-linear-gradient(90deg, #E3DD29 25%, #F5FFA0);
+	background-image: -webkit-linear-gradient(90deg, #E3DD29 25%, #F5FFA0);
+
+	width:10px;
+	height:10px;
+	border-radius:50px;
+
+	position:absolute;
+
+
+	-moz-transform:scale(0);
+	-moz-animation:point 0.1s linear forwards;
+
+	-webkit-transform:scale(0);
+	-webkit-animation:point 0.1s linear forwards;
 }
+
+/* CONTROL LAYER FOR THE DELAY */
+
+#layerBall1a { -moz-animation-delay:0s; -webkit-animation-delay:0s; }
+#layerBall1b { -moz-animation-delay:0.9s; -webkit-animation-delay:0.9s; }
+
+/* COORDINATE POINTS */
+.ball1a { top:100px; left:250px; }
+.ball1b { top:100px; left:350px; }
+/* ANIMATION LINES */
+
+@-moz-keyframes move {
+	0%   { width:0px;}
+	100% { width:200px; box-shadow:0px 0px 5px 1px rgba(0,198,255,0.5); }
+}
+@-moz-keyframes move1 {
+	0%   { width:0px;}
+	100% { width:200px; box-shadow:0px 0px 5px 1px rgba(0,198,255,0.5);}
+}
+@-moz-keyframes move2 {
+	0%   { width:0px;}
+	100% { width:400px; box-shadow:0px 0px 5px 1px rgba(0,198,255,0.5);}
+}
+@-moz-keyframes move3 {
+	0%   { width:0px;}
+	100% { width:300px; box-shadow:0px 0px 5px 1px rgba(0,198,255,0.5);}
+}
+
+/* ANIMATION POINTS and SPECIAL FX */
+
+@-moz-keyframes point {
+	0%  {-moz-transform:scale(0,0);}
+	100%{-moz-transform:scale(1,1);}
+}
+
+
+/* ANIMATION LINES for Safari and Chrome */
+
+@-webkit-keyframes move {
+	0%   { width:0px;}
+	100% { width:200px; box-shadow:0px 0px 5px 1px rgba(0,198,255,0.5); }
+}
+@-webkit-keyframes move1 {
+	0%   { width:0px;}
+	100% { width:200px; box-shadow:0px 0px 5px 1px rgba(0,198,255,0.5); }
+}
+@-webkit-keyframes move2 {
+	0%   { width:0px;}
+	100% { width:400px; box-shadow:0px 0px 5px 1px rgba(0,198,255,0.5); }
+}
+@-webkit-keyframes move3 {
+	0%   { width:0px;}
+	100% { width:300px; box-shadow:0px 0px 5px 1px rgba(0,198,255,0.5); }
+}
+
+/* ANIMATION POINTS + SPECIAL FX for Safari and Chrome */
+
+@-webkit-keyframes point {
+	0%  {-webkit-transform:scale(0,0);}
+	100%{-webkit-transform:scale(1,1);}
+}
+
