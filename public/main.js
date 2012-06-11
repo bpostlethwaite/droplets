@@ -4,84 +4,109 @@
 jQuery(document).ready(function($) {
   // Set vars, dims and elements
   var el = document.getElementById('wave')
-  var socket = io.connect("http://droplets.benjp.c9.io")
+//  var socket = io.connect("http://droplets.benjp.c9.io")
+  var socket = io.connect("192.168.1.113:8081")
   var field = wavefield()
-  var map = mapdisplay(field)
-  var pixel2Height
-  var pixel2Width
-  var fragment
-
+  var canvas = document.getElementById('wave')
+  var c = canvas.getContext('2d')
+  var xlen = 10
+  var ylen = 10
+  var rows
+  var cols
+  var colorgrad = buildColorGrad("#05050D", 26, 18)
 
 // ON RESIZE //////////////////////////////////////////////////////////////
   $(window).resize(function(e) {
-    var row, col, cspan
-      , dimfuncs = pixel2dim()
-    pixel2Height = dimfuncs[0]
-    pixel2Width = dimfuncs[1]
-    var rows = pixel2Height($(window).height())
-      , cols = pixel2Width($(window).width())
-    fragment = document.createDocumentFragment()
-    for (row = 0; row < rows; ++row) {
-      for (col = 0; col < cols; ++col) {
-        cspan = document.createElement("span")
-        cspan.innerHTML = "X"
-        fragment.appendChild( cspan )
-      }
-    fragment.appendChild( document.createElement('br') )
-    }
-    el.appendChild = fragment
+    rows = Math.floor(window.innerHeight / ylen)
+    cols = Math.floor(window.innerWidth / xlen)
+    c.canvas.width  = window.innerWidth
+    c.canvas.height = window.innerHeight
     field.setResolution(rows, cols)
+    console.log(rows,cols)
   }).trigger('resize')
+
 
 // BINDINGS ///////////////////////////////////////////////////////////////
   $('html').click(function(evt) {
     var d = {}
       , xpix = evt.pageX
       , ypix = evt.pageY
-    d.x = xpix / $(window).width() // turn into percentage
-    d.y = ypix / $(window).height() // before sending
+    d.x = xpix / window.innerWidth // turn into percentage
+    d.y = ypix / window.innerHeight // before sending
     socket.emit('clientDroplet', d)
-    field.addDroplet(pixel2Height(ypix), pixel2Width(xpix))
+    field.addDroplet( Math.floor(ypix / ylen), Math.floor(xpix / xlen) )
   })
 
 // SOCKETS ////////////////////////////////////////////////////////////////
   socket.on('newDroplet', function(d) {
-    var ypix = Math.round(d.y * $(window).height()) //recover from percentage
-      , xpix = Math.round(d.x * $(window).width()) // to this user resolution
-    field.addDroplet(pixel2Height(ypix), pixel2Width(xpix))
+    var ypix = Math.round( d.y * window.innerHeight ) //recover from percentage
+      , xpix = Math.round( d.x * window.innerWidth ) // to this user resolution
+    field.addDroplet( Math.floor(ypix / ylen), Math.floor(xpix / xlen) )
   })
 
-// START ANIMATION /////////////////////////////////////////////////////////
-  //map.start(el, 15)
+  // Canvas /////////////////////////////////////////////////////////////////
+  function start(fps) {
+    var s = Date.now()
+    var row, col, ind, val, round
+    var f = field.update()
+    c.clearRect(0, 0, canvas.width, canvas.height)
+    for (row = 0; row < rows; ++row) {
+      for (col = 0; col < cols; ++col) {
+        val = f[row][col]
+        // The following should result in an indices range from
+        // -12 : 13 <add 12 at end to make it indexible>
+        round = Math[val < 0 ? 'ceil' : 'floor'] // symmetric behaviour
+        if (Math.abs(val) < 1) {
+          ind = round(val * 10)
+        }
+        else if (Math.abs(val) < 2) {
+          ind = round(val * 3) + 7 * (val < 0 ? -1 : 1)
+        }
+        else if (val <= -2 ) ind = -13
+        else ind = 13
+        ind += 13 // start ind at index 0
+        // ind 13 is middle value (0 value)
+        c.fillStyle = colorgrad[ind]
+        c.fillRect(col*xlen, row*ylen, xlen, ylen)
+      }
+    }
+    console.log( Date.now() - s )
+    setInterval(start, fps)
+  }
+  // START ANIMATION /////////////////////////////////////////////////////////
+  start(100)
 }) // end JQuery
 
-function pixel2dim() {
-  // returns two function in an array. One for returning the row height
-  // for a given pixel, the other for returning the column width for a given
-  // x dimension pixel. The reason for the returning of functions is so this
-  // main pixel2dim func can be created less frequently (only on screen resize)
-  // than the more simple returned funcs who use the screen size data
-  // in the closure to output the rows and cols.
-  var div = document.createElement("div")
-  div.style.position = "absolute"
-  div.style.visibility = "hidden"
-  div.style.fontFamily = "Courier New"
-  div.style.fontSize = "11px"
-  div.innerHTML = "M"
-  document.body.appendChild(div)
-  var dim = {
-    width: div.offsetWidth,
-    height: div.offsetHeight
+// HELPER FUNCS //////////////////////////////////////////////////////////
+function colorLuminance(hex, lum) {
+  // validate hex string
+  hex = String(hex).replace(/[^0-9a-f]/gi, '')
+  if (hex.length < 6) {
+    hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2]
   }
-  document.body.removeChild(div)
-  // this won't be perfect, as the screen dims won't often be evenly divisible
-  return [function(pixelHeight) {
-    return Math.round(pixelHeight / dim.height)
-  }, function(pixelWidth) {
-    return Math.round(pixelWidth / dim.width)
-  }]
+  lum = lum || 0
+  // convert to decimal and change luminosity
+  var rgb = "#", c, i
+  for (i = 0; i < 3; i++) {
+    c = parseInt(hex.substr(i*2,2), 16)
+    c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16)
+    rgb += ("00"+c).substr(c.length)
+  }
+  return rgb
 }
 
+function buildColorGrad(baseShade, numElem, lum) {
+  // Build the gradient variable from a starting darkest shade.
+  // Goes up in lum/numElement increments, where lum
+  // is percent / 100 (1 = 100% increase)
+  var i
+  , nc = []
+  , inc = lum/numElem
+  for (i = 0; i < numElem; ++i) {
+    nc[i] = colorLuminance(baseShade, i*inc)
+  }
+  return nc
+}
 
 
 

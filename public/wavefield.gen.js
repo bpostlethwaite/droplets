@@ -8,9 +8,9 @@ function wavefield() {
     , dt = 0.1
     , dx = 1
     , gamma = 0.002 // decay factor
-    , vel = 1       // velocity
+    , vel = 2       // velocity
     , dsz = 3       // droplet size
-    , mag = 1        // droplet magnitude
+    , mag = 2        // droplet magnitude
     , u             // main data array
     , un            // next time step data array
     , up            // previous time step data array
@@ -21,6 +21,14 @@ function wavefield() {
     , [1, -4, 1]
     , [0, 1, 0]
     ]
+  , gauss = [
+      [1/256,  4/256,  6/256,  4/256, 1/256]
+    , [4/256, 16/256, 24/256, 16/256, 4/256]
+    , [6/256, 24/256, 36/256, 24/256, 6/256]
+    , [4/256, 16/256, 24/256, 16/256, 4/256]
+    , [1/256,  4/256,  6/256,  4/256, 1/256]
+  ]
+
   var c1 = 2 - gamma * dt
   var c2 = gamma * dt - 1
   var c3 = (dt*dt * vel*vel) / (dx*dx)
@@ -40,12 +48,20 @@ function wavefield() {
     return u
   }
 
-	function addDroplet (row, col) {
-		// adds a new gaussian droplet to u
-		// at specified coordinates.
-		// (For now just adds a point source)
-		u[row][col] += mag
-	}
+  function addDroplet (row, col) {
+    // adds a new gaussian droplet to u
+    // at specified coordinates.
+    // (For now just adds a point source)
+    var i, j
+    for ( i = -2; i <= 2; i++ ) {
+      for ( j = -2; j <= 2; j++ ) {
+        if( row + i >= 0 && col + j >= 0 &&
+            row + i < height && col + j < width) {
+          u[row + i][col + j] += mag * gauss[i + 2][j + 2]
+        }
+      }
+    }
+  }
 
   function conv2(image, kernel) {
     // iterates over image, then over kernel and
@@ -54,7 +70,7 @@ function wavefield() {
     // then adds into new array entry.
     var out = Array.matrix(height, width, 0)
     var acc = 0
-      , row, col, i, j, k
+    , row, col, i, j, k
     for ( row = 0; row < height; row++ ) {
       for ( col = 0; col < width; col++ ) {
         for ( i = -1; i <= 1; i++ ) {
@@ -115,7 +131,7 @@ function wavefield() {
     return height
   }
 
-	function getWidth () {
+  function getWidth () {
     return width
   }
 

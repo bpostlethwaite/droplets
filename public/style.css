@@ -1,128 +1,104 @@
 * {
-	padding: 0;
-	margin: 0;
-	text-rendering: optimizeSpeed;
-	-webkit-font-smoothing: none;
+    padding: 0;
+    margin: 0;
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: none;
 }
 a {
-	color: red !important;
-	text-decoration: underline;
+    color: red !important;
+    text-decoration: underline;
 }
 a:hover {
-	text-decoration: none;
+    text-decoration: none;
 }
-body {
-	overflow: hidden;
+
+
+html, body {
+    width:  100%;
+    height: 100%;
+    margin: 0px;
+    overflow: hidden;
 }
 
 body * {
-	font-size: 12px;
-	line-height: 16px;
-	font-family: "Courier New";
-	color: #444;
+    font-size: 12px;
+    line-height: 16px;
+    font-family: "Courier New";
+    color: #444;
 }
 body.smaller * {
-	font-size: 11px;
-	line-height: 15px;
+    font-size: 11px;
+    line-height: 15px;
 }
 
-#wave {
-	color: red;
-	white-space: pre;
-	width: auto;
-	height: auto;
-	display: inline-block;
-	cursor: default;
-	-moz-user-select: -moz-none;
-	-khtml-user-select: none;
-	-webkit-user-select: none;
-	user-select: none;
-/*
-	-webkit-transition: all 0.3s ease-out;
-	-moz-transition: all 0.3s ease-out;
-	-o-transition: all 0.3s ease-out;
-	transition: all 0.3s ease-out;
-*/
-}
-#wave.fading {
-	font-style: italic;
-}
-#fps {
-	position: absolute;
-	bottom: 10px;
-	right: 10px;
-	background: white;
-	padding: 10px;
-	display: none;
-}
 
 .js #overlay {
-	display: none;
+    display: none;
 }
 #overlay {
-	position: absolute;
-	top: 63px;
-	left: 70px;
-	pointer-events: none;
-	z-index: 100;
+    position: absolute;
+    top: 63px;
+    left: 70px;
+    pointer-events: none;
+    z-index: 100;
 }
-	#overlay > div {
-		background: white;
-		/*padding: 0 27px 0 22px;*/
-		padding: 0 21px;
-		pointer-events: auto;
-	}
-	#card {
-		width: 287px;
-	}
-	#controls {
-		display: inline-block;
-		/*background: none !important;*/
-	}
-	body.smaller #overlay {
-		top: 61px;
-	}
+#overlay > div {
+    background: white;
+    /*padding: 0 27px 0 22px;*/
+    padding: 0 21px;
+    pointer-events: auto;
+}
+#card {
+    width: 287px;
+}
+#controls {
+    display: inline-block;
+/*background: none !important;*/
+}
+body.smaller #overlay {
+    top: 61px;
+}
 
 h1, h2, p  {
-	display: inline-block;
+    display: inline-block;
 }
 h2 {
-	font-weight: normal;
+    font-weight: normal;
 }
 dd {
-	text-indent: -4px;
+    text-indent: -4px;
 }
 dt {
-	/*text-indent: -4px;*/
-	font-style: italic;
-	text-align: right;
+    /*text-indent: -4px;*/
+    font-style: italic;
+    text-align: right;
 }
 
 
 button#clear {
-	background: red;
-	color: white;
-	font-weight: bold;
-	padding: 6px 7px;
-	border: 1px solid rgb(240, 0, 0);
-	cursor: pointer;
-	-webkit-box-shadow: 	2px 2px 0px 0px rgb(210, 210, 210);
-	-moz-box-shadow: 		2px 2px 0px 0px rgb(210, 210, 210);
-	box-shadow: 			2px 2px 0px 0px rgb(210, 210, 210);
+    background: red;
+    color: white;
+    font-weight: bold;
+    padding: 6px 7px;
+    border: 1px solid rgb(240, 0, 0);
+    cursor: pointer;
+    -webkit-box-shadow: 	2px 2px 0px 0px rgb(210, 210, 210);
+    -moz-box-shadow: 		2px 2px 0px 0px rgb(210, 210, 210);
+    box-shadow: 			2px 2px 0px 0px rgb(210, 210, 210);
 }
-	button#clear:hover {
-		position: relative;
-		left: -1px;
-		top: -1px;
-		-webkit-box-shadow: 3px 3px 0px 0px rgb(220, 220, 220);
-		-moz-box-shadow: 	3px 3px 0px 0px rgb(220, 220, 220);
-		box-shadow: 		3px 3px 0px 0px rgb(220, 220, 220);
-	}
-	button#clear:active {
-		position: relative;
-		left: 1px;
-		top: 1px;
-		-webkit-box-shadow: 0px 0px;
-		-moz-box-shadow: 	0px 0px;
-		box-shadow: 		0px 0px;
-	}
+button#clear:hover {
+    position: relative;
+    left: -1px;
+    top: -1px;
+    -webkit-box-shadow: 3px 3px 0px 0px rgb(220, 220, 220);
+    -moz-box-shadow: 	3px 3px 0px 0px rgb(220, 220, 220);
+    box-shadow: 		3px 3px 0px 0px rgb(220, 220, 220);
+}
+button#clear:active {
+    position: relative;
+    left: 1px;
+    top: 1px;
+    -webkit-box-shadow: 0px 0px;
+    -moz-box-shadow: 	0px 0px;
+    box-shadow: 		0px 0px;
+}
