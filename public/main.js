@@ -1,10 +1,12 @@
 /*jshint asi: true*/
 /*jshint laxcomma: true*/
 "use strict";
+
+
 jQuery(document).ready(function($) {
-  // Set vars, dims and elements
+/// Set vars, dims and elements //////////////////////////////////////
   var el = document.getElementById('wave')
-//  var socket = io.connect("http://droplets.benjp.c9.io")
+  //  var socket = io.connect("http://droplets.benjp.c9.io")
   var socket = io.connect("192.168.1.113:8081")
   var field = wavefield()
   var canvas = document.getElementById('canvas')
@@ -13,9 +15,12 @@ jQuery(document).ready(function($) {
   var ylen = 10
   var maxval = 40 // +/- 4
   var colorgrad = buildColorGrad("#05050D", maxval*2 + 1, 18)
-  var sID=null
+  var shapeArray = buildShapeArray(xlen, ylen, colorgrad)
+  var time = 0
 
-// ON RESIZE //////////////////////////////////////////////////////////////
+
+/////////////BINDINGS//////////////////////////////////////////////////////
+// ON RESIZE ///////////////////////////////////////
   $(window).resize(function(e) {
     var rows = Math.floor(window.innerHeight / ylen)
       , cols = Math.floor(window.innerWidth / xlen)
@@ -24,7 +29,7 @@ jQuery(document).ready(function($) {
     canvas.height = window.innerHeight
   }).trigger('resize')
 
-// BINDINGS ///////////////////////////////////////////////////////////////
+// Clicks //////////////////////////////////////////
   $('html').click(function(evt) {
     var d = {}
       , xpix = evt.pageX
@@ -44,7 +49,7 @@ jQuery(document).ready(function($) {
     }
   })
 
-// SOCKETS ////////////////////////////////////////////////////////////////
+////////// SOCKETS ////////////////////////////////////////////////////////////////
   socket.on('readme', function(readme) {
     $('.content.tog3').html(readme)
   })
@@ -55,14 +60,15 @@ jQuery(document).ready(function($) {
     field.addDroplet( Math.floor(ypix / ylen), Math.floor(xpix / xlen) )
   })
 
-// Canvas /////////////////////////////////////////////////////////////////
-  function start(fps) {
-    //var s = Date.now()
+// Draw Canvas /////////////////////////////////////////////////////////////////
+
+
+  function renderer () {
     var row, col, ind, val
       , f = field.update()
       , rows = field.getHeight()
       , cols = field.getWidth()
-    c.clearRect(0, 0, canvas.width, canvas.height)
+    //c.clearRect(0, 0, canvas.width, canvas.height)
     for (row = 0; row < rows; ++row) {
       for (col = 0; col < cols; ++col) {
         val = f[row][col] * 10
@@ -75,11 +81,53 @@ jQuery(document).ready(function($) {
         c.fillRect(col*xlen, row*ylen, xlen, ylen)
       }
     }
-    //console.log( Date.now() - s )
-    setInterval(start, fps)
   }
+/*
+  function rendererII () {
+    var row, col, ind, val
+    , f = field.update()
+    , rows = field.getHeight()
+    , cols = field.getWidth()
+    //c.clearRect(0, 0, canvas.width, canvas.height)
+    for (row = 0; row < rows; ++row) {
+      for (col = 0; col < cols; ++col) {
+        val = f[row][col] * 10
+        ind = val | 0  // floor if > 0, ceil if < 0
+        if (Math.abs(ind) > maxval) {
+          ind = maxval * (ind < 0 ? -1 : 1)
+        }
+        ind += 40 // start ind at index 0
+        c.drawImage(shapeArray[ind], col*xlen, row*ylen)
+      }
+    }
+  }
+
+
+  field.addDroplet( Math.floor(50 / ylen), Math.floor(150 / xlen) )
+  field.addDroplet( Math.floor(350 / ylen), Math.floor(350 / xlen) )
+*/
+
+  function animate() {
+ //   var s = Date.now()
+    rendererII()
+ //   time += Date.now() - s
+ //   if (++count === 1000) {
+ //     console.log(time / 1000)
+ //     return
+ //   }
+    setTimeout(animate, ms)
+  }
+
+  var count = 0
+  var ms = 0
 // START ANIMATION /////////////////////////////////////////////////////////
-  start(150)
+  animate()
+
+  /* *** FOR TESTING PRERENDERED SQUARES ***
+  for (var ii = 0; ii < shapeArray.length; ++ii) {
+    c.drawImage(shapeArray[ii], ii*xlen, ii*ylen)
+  }
+  */
 
 }) // end JQuery
 
@@ -114,6 +162,26 @@ function buildColorGrad(baseShade, numElem, lum) {
   return nc
 }
 
+// PRE-RENDER FUNCS //
+function renderToCanvas (width, height, renderFunction) {
+    var buffer = document.createElement('canvas')
+    buffer.width = width
+    buffer.height = height
+    renderFunction(buffer.getContext('2d'))
+    return buffer;
+}
+
+
+  function buildShapeArray(width, height, colorArray) {
+    var i, out = []
+    for (i = 0; i < colorArray.length; ++i) {
+      out[i] = renderToCanvas(width, height, function (ctx) {
+        ctx.fillStyle = colorArray[i]
+        ctx.fillRect(0, 0, width, height)
+      })
+    }
+    return out
+  }
 
 
 // If using an overlay, or area you don't want to
