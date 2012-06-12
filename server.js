@@ -4,12 +4,14 @@
 var server = require("node-static")
   , app = require("http").createServer(handler)
   , io = require("socket.io").listen(app)
+  , md = require("node-markdown").Markdown
+  , fs = require('fs')
 
 // Set logging level
 io.set('log level', 1)
 // Listen on port
-var port = process.env.PORT
-//var port = 8081
+//var port = process.env.PORT
+var port = 8081
 app.listen(port)
 console.log("Static server listening on " + process.env.PORT)
 //
@@ -34,10 +36,21 @@ function handler(request, response) {
   })
 }
 
-//
-// SOCKETS!
-//
 io.sockets.on('connection', function(socket) {
+//
+// PARSE AND EMIT DATA
+//
+  fs.readFile("README.md", 'utf8', function (err, data) {
+    if (err) {
+      console.log ("Problem reading README.md")
+      return
+    }
+    var rdhtml = md(data)
+    socket.emit('readme', rdhtml)
+  })
+//
+// DROPLETS
+//
   socket.on('clientDroplet', function(data) {
     socket.broadcast.emit('newDroplet', data)
     console.log(data.y, data.x)

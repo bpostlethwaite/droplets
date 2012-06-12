@@ -2,7 +2,6 @@
   padding: 0;
 	margin: 0;
 }
-
 a {
     color:red !important;
     text-decoration: underline;
@@ -10,21 +9,19 @@ a {
 a:hover {
     text-decoration: none;
 }
-
 html, body {
     width:  100%;
     height: 100%;
     margin: 0px;
     overflow: hidden;
 }
-
 body * {
     font-size: 12px;
     line-height: 16px;
     font-family: "Courier New";
     color: #DBA118;
 }
-
+/**** GENERIC OVERLAY PROPS ***********************************/
 #overlay {
     position: absolute;
     top: 60px;
@@ -39,6 +36,7 @@ body * {
     padding: 0 21px;
     pointer-events: auto;
 }
+/**** CALLING CARD ***********************************/
 #card {
     float: left;
     width: 180px;
@@ -47,24 +45,24 @@ body * {
     -webkit-border-radius: 15px;
     border-radius: 15px;
 }
-
+/**** CATEGORY BUTTONS ***********************************/
 .category {
   -moz-box-shadow:0 1px 0 0 #BF8B11;
   -ms-box-shadow:0 1px 0 0 #BF8B11;
-	-webkit-box-shadow:0 1px 0 0 #BF8B11;
+  -webkit-box-shadow:0 1px 0 0 #BF8B11;
   box-shadow:0 1 0 0 #BF8B11;
-	background-color:transparent;
+  background-color:transparent;
   width:120px;
-	-moz-border-radius:6px;
+  -moz-border-radius:6px;
   -ms-border-radius:6px;
-	-webkit-border-radius:6px;
+  -webkit-border-radius:6px;
   border-radius:6px;
-	border:1px solid #DBA118;
+  border:1px solid #DBA118;
   margin-bottom: 3px;
   margin-top: 3px;
-	display:inline-block;
-	padding:4px 4px;
-	text-decoration:none;
+  display:inline-block;
+  padding:4px 4px;
+  text-decoration:none;
 }
 .category:hover {
 	position:relative;
@@ -78,7 +76,6 @@ body * {
 .category:hover > h2 {
   color:#E3DD29;
 }
-
 .category.selected {
   position:relative;
 	top:1px;
@@ -102,8 +99,7 @@ dt {
     font-style: italic;
     text-align: right;
 }
-
-
+/**** CONNECTORS ***********************************/
 .connector {
   position:absolute;
   background:#E3DD29 !important;
@@ -136,7 +132,7 @@ dt {
   -ms-animation:move 1s linear forwards;
   -webkit-animation:move 1s linear forwards;
 }
-
+/**** INFORMATION PANELS ***********************************/
 .infopane {
   display:none;
   float: left;
@@ -148,51 +144,39 @@ dt {
   -webkit-border-radius: 15px;
   border-radius: 15px;
 }
-.infopane.tog1.selected {
-  display:block;
-  height: 300px;
+
+.infopane.selected {
+  display:inline-block;
+  height: 360px;
   -moz-animation:move2 1s 1s linear forwards;
   -ms-animation:move2 1s 1s linear forwards;
   -webkit-animation:move2 1s 1s linear forwards;
-}
-.infopane.tog2.selected {
-  display:block;
-  height: 300px;
-  -moz-animation:move2 1s 1s linear forwards;
-  -ms-animation:move2 1s 1s linear forwards;
-  -webkit-animation:move2 1s 1s linear forwards;
-}
-.infopane.tog3.selected {
-  display:block;
-  height: 300px;
-  -moz-animation:move2 1s 1s linear forwards;
-  -ms-animation:move2 1s 1s linear forwards;
-  -webkit-animation:move2 1s 1s linear forwards;
-}
-.infopane.tog4.selected {
-  display:block;
-  height: 300px;
-  -moz-animation:move2 1s infinite linear forwards;
-  -ms-animation:move2 1s infinite linear forwards;
-  -webkit-animation:move2 1s infinite linear forwards;
 }
 
+/**** CONTENT ***********************************/
 .content {
-  padding: 0 21px;
   opacity: 0;
+  padding: 0 21px;
+
 }
 .content.selected {
-  -webkit-animation:appear 1s 2s;
-  -moz-animation:appear 1s 2s;
-  -ms-animation:appear 1s 2s;
+  -webkit-animation: appear 1s;
+  -moz-animation:appear 1s;
+  -ms-animation:appear 1s;
+  -webkit-animation-delay: 2s;
+  -moz-animation-delay: 2s;
+  -ms-animation-delay: 2s;
+  -webkit-animation-fill-mode: forwards;
+  -moz-animation-fill-mode: forwards;
+  -ms-animation-fill-mode: forwards;
 }
-
+/**** ANIMATIONS ***********************************/
 @-moz-keyframes move {
-	0%   { width:0;}
-	100% { width:150px; box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5); }
+  0%   { width:0;}
+  100% { width:150px; box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5); }
 }
 @-webkit-keyframes move {
-	0%   { width:0;}
+  0%   { width:0;}
   100% { width:150px; box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5); }
 }
 @-ms-keyframes move {
@@ -202,7 +186,7 @@ dt {
 
 @-moz-keyframes move2 {
   0%   {width:0;}
-	100% {width:360px;}
+  100% {width:360px;}
 }
 @-webkit-keyframes move2 {
    0%   {width:0;}
@@ -218,8 +202,8 @@ dt {
   100% { opacity: 1; }
 }
 @-moz-keyframes appear {
-	0%   { opacity: 0; }
-	100% { opacity: 1; }
+  0%  { opacity: 0; }
+  100% { opacity: 1; }
 }
 @-ms-keyframes appear {
 	0%   { opacity: 0; }
