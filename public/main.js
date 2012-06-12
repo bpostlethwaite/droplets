@@ -1,11 +1,11 @@
 /*jshint asi: true*/
 /*jshint laxcomma: true*/
 "use strict";
+
+
 jQuery(document).ready(function($) {
-  // Set vars, dims and elements
+/// Set vars, dims and elements //////////////////////////////////////
   var el = document.getElementById('wave')
-//  var socket = io.connect("http://droplets.benjp.c9.io")
-//  var socket = io.connect("192.168.1.113:8081"
   var socket = io.connect("50.116.7.59")
   var field = wavefield()
   var canvas = document.getElementById('canvas')
@@ -14,9 +14,9 @@ jQuery(document).ready(function($) {
   var ylen = 10
   var maxval = 40 // +/- 4
   var colorgrad = buildColorGrad("#05050D", maxval*2 + 1, 18)
-  var sID=null
 
-// ON RESIZE //////////////////////////////////////////////////////////////
+/////////////BINDINGS//////////////////////////////////////////////////////
+// ON RESIZE ///////////////////////////////////////
   $(window).resize(function(e) {
     var rows = Math.floor(window.innerHeight / ylen)
       , cols = Math.floor(window.innerWidth / xlen)
@@ -25,7 +25,7 @@ jQuery(document).ready(function($) {
     canvas.height = window.innerHeight
   }).trigger('resize')
 
-// BINDINGS ///////////////////////////////////////////////////////////////
+// Clicks //////////////////////////////////////////
   $('html').click(function(evt) {
     var d = {}
       , xpix = evt.pageX
@@ -45,7 +45,7 @@ jQuery(document).ready(function($) {
     }
   })
 
-// SOCKETS ////////////////////////////////////////////////////////////////
+////////// SOCKETS ////////////////////////////////////////////////////////////////
   socket.on('readme', function(readme) {
     $('.content.tog3').html(readme)
   })
@@ -56,14 +56,14 @@ jQuery(document).ready(function($) {
     field.addDroplet( Math.floor(ypix / ylen), Math.floor(xpix / xlen) )
   })
 
-// Canvas /////////////////////////////////////////////////////////////////
-  function start(fps) {
-    //var s = Date.now()
+// Draw Canvas /////////////////////////////////////////////////////////////////
+
+  function renderer () {
     var row, col, ind, val
       , f = field.update()
       , rows = field.getHeight()
       , cols = field.getWidth()
-    c.clearRect(0, 0, canvas.width, canvas.height)
+    //c.clearRect(0, 0, canvas.width, canvas.height)
     for (row = 0; row < rows; ++row) {
       for (col = 0; col < cols; ++col) {
         val = f[row][col] * 10
@@ -76,11 +76,12 @@ jQuery(document).ready(function($) {
         c.fillRect(col*xlen, row*ylen, xlen, ylen)
       }
     }
-    //console.log( Date.now() - s )
-    setInterval(start, fps)
   }
-// START ANIMATION /////////////////////////////////////////////////////////
-  start(150)
+
+  function animate() {
+    renderer()
+    setTimeout(animate, 100)
+  }()
 
 }) // end JQuery
 
@@ -115,10 +116,3 @@ function buildColorGrad(baseShade, numElem, lum) {
   return nc
 }
 
-
-
-// If using an overlay, or area you don't want to
-// receive mouseclicks from use:
-// $('#sacredcontainer').click(function(event){
-//      event.stopPropagation()
-//  })
