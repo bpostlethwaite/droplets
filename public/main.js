@@ -4,8 +4,8 @@
 jQuery(document).ready(function($) {
   // Set vars, dims and elements
   var el = document.getElementById('wave')
-  var socket = io.connect("http://droplets.benjp.c9.io")
-//  var socket = io.connect("192.168.1.113:8081")
+//  var socket = io.connect("http://droplets.benjp.c9.io")
+  var socket = io.connect("192.168.1.113:8081")
   var field = wavefield()
   var canvas = document.getElementById('canvas')
   var c = canvas.getContext('2d')
@@ -37,25 +37,18 @@ jQuery(document).ready(function($) {
 
 // This turns on and off button selected class for animations
   $(".category").click(function() {
-    if ($(this).attr('id') === sID) {
-      $(".category").removeClass('selected')
-      $(".content").removeClass('selected')
-      $("."+sID).removeClass('selected')
-      sID=null //Nothing selected now.
-    }
-    else { // turn off whatever IS selected and reselect clicked tab
-      $(".category").removeClass('selected')
-      $(".connector").removeClass('selected')
-      $(".infopane").removeClass('selected')
-      $(".content").removeClass('selected')
-      sID = $(this).attr('id')
-      $(this).addClass('selected')
-      $(".content").addClass('selected')
-      $("."+sID).addClass('selected') //find matching classes associated w/ ID
+    $('.selected').not(this).removeClass('selected') //turn of all previously selected
+    $(this).toggleClass('selected') // Toggle this buttons class.
+    if ( $(this).hasClass('selected') ) { // If it wasn't previously selected then continue and engage.
+      $("."+ $(this).attr('id') ).addClass('selected') //find matching classes associated w/ ID
     }
   })
 
 // SOCKETS ////////////////////////////////////////////////////////////////
+  socket.on('readme', function(readme) {
+    $('.content.tog3').html(readme)
+  })
+
   socket.on('newDroplet', function(d) {
     var ypix = Math.round( d.y * window.innerHeight ) //recover from percentage
       , xpix = Math.round( d.x * window.innerWidth ) // to this user resolution
@@ -86,10 +79,7 @@ jQuery(document).ready(function($) {
     setInterval(start, fps)
   }
 // START ANIMATION /////////////////////////////////////////////////////////
-  //start(150)
-
-
-
+  start(150)
 
 }) // end JQuery
 

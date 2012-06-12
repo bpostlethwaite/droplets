@@ -10,7 +10,7 @@ function wavefield() {
     , gamma = 0.002 // decay factor
     , vel = 2       // velocity
     , dsz = 3       // droplet size
-    , mag = 10      // droplet magnitude
+    , mag = 15      // droplet magnitude
     , u             // main data array
     , un            // next time step data array
     , up            // previous time step data array
