@@ -1,8 +1,10 @@
-<!doctype HTML>
+<!DOCTYPE html>
 <html>
 <head>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+  <script type="text/javascript" src="wavefield.gen.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
   <link rel="stylesheet" type="text/css" href="style.css" />
   <link rel="apple-touch-icon" href="/favicon.ico"/>
 
@@ -10,34 +12,57 @@
 
 <body>
   <div id="overlay">
-    <div id="card">
+
+  <div id="card">
       <br/>
       <br/>
       <h1>Ben Postlethwaite</h1><br/>
       <h2>Vancouver</h2><br/>
       &rarr; <a href="mailto:post.ben.here@gmail.com">Email</a><br/>
       &rarr; <a href="https://github.com/benjpost">Github</a><br/><br/>
-      <h2 id="geop">Geophysics</h2><br/>
-      <h2 id="seis">Seismology</h2><br/>
-      <h2 id="prog">Programming</h2><br/>
-      <h2 id="node">Node.js </h2><br/>
+      <button id="tog1" class="category"><h2>Geophysics</h2></button><br/>
+      <button id="tog2" class="category"><h2>Programming</h2></button><br/>
+      <button id="tog3" class="category"><h2>This website</h2></button><br/>
+      <button id="tog4" class="category"><h2>CV and links</h2></button><br/>
       <br/>
-      <br/><br/>
       <dd> Droplets upon screen click are visible to <em>ALL</em> viewers of this webpage, wherever they might be. <br/><br/></dd>
       <br/>
       <br/>
     </div>
-  </div>
 
-  <div class="container">
-    <div id="layerBall1a" class="ball1a"></div>
-    <div class="line1"></div>
-    <div id="layerBall1b" class="ball1b"> </div>
+    <div class="connector tog1"></div>
+    <div class="connector tog2"></div>
+    <div class="connector tog3"></div>
+    <div class="connector tog4"></div>
+
+    <div class="infopane tog1">
+      <div class="content">
+        <h1>Geophysics</h1>
+      </div>
+    </div>
+
+    <div class="infopane tog2">
+      <div class="content">
+        <h1>Programming</h1>
+      </div>
+    </div>
+
+    <div class="infopane tog3">
+      <div class="content">
+        <h1>About this Website</h1>
+      </div>
+    </div>
+
+    <div class="infopane tog4">
+      <div class="content">
+        <h1>My CV and Links</h1>
+      </div>
+    </div>
+
   </div>
 
   <canvas id="canvas"></canvas>
-  <script type="text/javascript" src="wavefield.gen.js"></script>
-  <script src="/socket.io/socket.io.js"></script>
+
   <script src="main.js"></script>
 
 </body>
