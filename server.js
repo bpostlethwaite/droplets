@@ -10,10 +10,9 @@ var server = require("node-static")
 // Set logging level
 io.set('log level', 1)
 // Listen on port
-//var port = process.env.PORT
-var port = 8081
+var port = 80
 app.listen(port)
-console.log("Static server listening on " + process.env.PORT)
+console.log("Static server listening on " + port )
 //
 // BORING SERVER
 //

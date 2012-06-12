@@ -6,8 +6,7 @@
 jQuery(document).ready(function($) {
 /// Set vars, dims and elements //////////////////////////////////////
   var el = document.getElementById('wave')
-  //  var socket = io.connect("http://droplets.benjp.c9.io")
-  var socket = io.connect("192.168.1.113:8081")
+  var socket = io.connect("50.116.7.59")
   var field = wavefield()
   var canvas = document.getElementById('canvas')
   var c = canvas.getContext('2d')
@@ -15,9 +14,6 @@ jQuery(document).ready(function($) {
   var ylen = 10
   var maxval = 40 // +/- 4
   var colorgrad = buildColorGrad("#05050D", maxval*2 + 1, 18)
-  var shapeArray = buildShapeArray(xlen, ylen, colorgrad)
-  var time = 0
-
 
 /////////////BINDINGS//////////////////////////////////////////////////////
 // ON RESIZE ///////////////////////////////////////
@@ -62,7 +58,6 @@ jQuery(document).ready(function($) {
 
 // Draw Canvas /////////////////////////////////////////////////////////////////
 
-
   function renderer () {
     var row, col, ind, val
       , f = field.update()
@@ -82,52 +77,11 @@ jQuery(document).ready(function($) {
       }
     }
   }
-/*
-  function rendererII () {
-    var row, col, ind, val
-    , f = field.update()
-    , rows = field.getHeight()
-    , cols = field.getWidth()
-    //c.clearRect(0, 0, canvas.width, canvas.height)
-    for (row = 0; row < rows; ++row) {
-      for (col = 0; col < cols; ++col) {
-        val = f[row][col] * 10
-        ind = val | 0  // floor if > 0, ceil if < 0
-        if (Math.abs(ind) > maxval) {
-          ind = maxval * (ind < 0 ? -1 : 1)
-        }
-        ind += 40 // start ind at index 0
-        c.drawImage(shapeArray[ind], col*xlen, row*ylen)
-      }
-    }
-  }
-
-
-  field.addDroplet( Math.floor(50 / ylen), Math.floor(150 / xlen) )
-  field.addDroplet( Math.floor(350 / ylen), Math.floor(350 / xlen) )
-*/
 
   function animate() {
- //   var s = Date.now()
-    rendererII()
- //   time += Date.now() - s
- //   if (++count === 1000) {
- //     console.log(time / 1000)
- //     return
- //   }
-    setTimeout(animate, ms)
-  }
-
-  var count = 0
-  var ms = 0
-// START ANIMATION /////////////////////////////////////////////////////////
-  animate()
-
-  /* *** FOR TESTING PRERENDERED SQUARES ***
-  for (var ii = 0; ii < shapeArray.length; ++ii) {
-    c.drawImage(shapeArray[ii], ii*xlen, ii*ylen)
-  }
-  */
+    renderer()
+    setTimeout(animate, 100)
+  }()
 
 }) // end JQuery
 
@@ -162,30 +116,3 @@ function buildColorGrad(baseShade, numElem, lum) {
   return nc
 }
 
-// PRE-RENDER FUNCS //
-function renderToCanvas (width, height, renderFunction) {
-    var buffer = document.createElement('canvas')
-    buffer.width = width
-    buffer.height = height
-    renderFunction(buffer.getContext('2d'))
-    return buffer;
-}
-
-
-  function buildShapeArray(width, height, colorArray) {
-    var i, out = []
-    for (i = 0; i < colorArray.length; ++i) {
-      out[i] = renderToCanvas(width, height, function (ctx) {
-        ctx.fillStyle = colorArray[i]
-        ctx.fillRect(0, 0, width, height)
-      })
-    }
-    return out
-  }
-
-
-// If using an overlay, or area you don't want to
-// receive mouseclicks from use:
-// $('#sacredcontainer').click(function(event){
-//      event.stopPropagation()
-//  })
