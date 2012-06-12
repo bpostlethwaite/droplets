@@ -82,7 +82,7 @@ jQuery(document).ready(function($) {
       }
     }
   }
-/*
+
   function rendererII () {
     var row, col, ind, val
     , f = field.update()
@@ -103,13 +103,13 @@ jQuery(document).ready(function($) {
   }
 
 
-  field.addDroplet( Math.floor(50 / ylen), Math.floor(150 / xlen) )
-  field.addDroplet( Math.floor(350 / ylen), Math.floor(350 / xlen) )
-*/
+  //field.addDroplet( Math.floor(50 / ylen), Math.floor(150 / xlen) )
+  //field.addDroplet( Math.floor(350 / ylen), Math.floor(350 / xlen) )
+
 
   function animate() {
  //   var s = Date.now()
-    rendererII()
+     rendererII()
  //   time += Date.now() - s
  //   if (++count === 1000) {
  //     console.log(time / 1000)
