@@ -4,8 +4,8 @@
 jQuery(document).ready(function($) {
   // Set vars, dims and elements
   var el = document.getElementById('wave')
-//  var socket = io.connect("http://droplets.benjp.c9.io")
-  var socket = io.connect("192.168.1.113:8081")
+  var socket = io.connect("http://droplets.benjp.c9.io")
+//  var socket = io.connect("192.168.1.113:8081")
   var field = wavefield()
   var canvas = document.getElementById('canvas')
   var c = canvas.getContext('2d')
@@ -13,6 +13,7 @@ jQuery(document).ready(function($) {
   var ylen = 10
   var maxval = 40 // +/- 4
   var colorgrad = buildColorGrad("#05050D", maxval*2 + 1, 18)
+  var sID=null
 
 // ON RESIZE //////////////////////////////////////////////////////////////
   $(window).resize(function(e) {
@@ -32,6 +33,26 @@ jQuery(document).ready(function($) {
     d.y = ypix / window.innerHeight // before sending
     socket.emit('clientDroplet', d)
     field.addDroplet( (ypix / ylen) | 0 , (xpix / xlen) | 0 )
+  })
+
+// This turns on and off button selected class for animations
+  $(".category").click(function() {
+    if ($(this).attr('id') === sID) {
+      $(".category").removeClass('selected')
+      $(".content").removeClass('selected')
+      $("."+sID).removeClass('selected')
+      sID=null //Nothing selected now.
+    }
+    else { // turn off whatever IS selected and reselect clicked tab
+      $(".category").removeClass('selected')
+      $(".connector").removeClass('selected')
+      $(".infopane").removeClass('selected')
+      $(".content").removeClass('selected')
+      sID = $(this).attr('id')
+      $(this).addClass('selected')
+      $(".content").addClass('selected')
+      $("."+sID).addClass('selected') //find matching classes associated w/ ID
+    }
   })
 
 // SOCKETS ////////////////////////////////////////////////////////////////
@@ -65,7 +86,7 @@ jQuery(document).ready(function($) {
     setInterval(start, fps)
   }
 // START ANIMATION /////////////////////////////////////////////////////////
-  start(150)
+  //start(150)
 
 
 
