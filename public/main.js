@@ -102,26 +102,26 @@ jQuery(document).ready(function($) {
     }
   }
 
-
   //field.addDroplet( Math.floor(50 / ylen), Math.floor(150 / xlen) )
   //field.addDroplet( Math.floor(350 / ylen), Math.floor(350 / xlen) )
 
-
+/*
+  var count = 0
   function animate() {
-    //var s = Date.now()
+    var s = Date.now()
     renderer()
-    //console.log(Date.now() - s)
-    //time += Date.now() - s
- //   if (++count === 1000) {
- //     console.log(time / 1000)
- //     return
- //   }
+    console.log(Date.now() - s)
+    time += Date.now() - s
+    if (++count === 1000) {
+      console.log(time / 1000)
+      return
+    }
     setTimeout(animate, 0)
   }
+*/
+  //setInterval(renderer, 10)
 
-  setInterval(renderer, 0)
 
-  var count = 0
 
 // START ANIMATION /////////////////////////////////////////////////////////
   //animate()
