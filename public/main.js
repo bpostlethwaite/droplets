@@ -108,9 +108,10 @@ jQuery(document).ready(function($) {
 
 
   function animate() {
- //   var s = Date.now()
-     rendererII()
- //   time += Date.now() - s
+    var s = Date.now()
+    rendererII()
+    console.log(Date.now() - s)
+    time += Date.now() - s
  //   if (++count === 1000) {
  //     console.log(time / 1000)
  //     return
