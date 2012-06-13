@@ -6,7 +6,7 @@
 jQuery(document).ready(function($) {
 /// Set vars, dims and elements //////////////////////////////////////
   var el = document.getElementById('wave')
-  var socket = io.connect("50.116.7.59")
+  var socket = io.connect("192.168.1.113:8081")
   var field = wavefield()
   var canvas = document.getElementById('canvas')
   var c = canvas.getContext('2d')
@@ -81,7 +81,9 @@ jQuery(document).ready(function($) {
   function animate() {
     renderer()
     setTimeout(animate, 100)
-  }()
+  }
+
+  animate()
 
 }) // end JQuery
 
