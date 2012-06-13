@@ -12,7 +12,7 @@ io.set('log level', 1)
 // Listen on port
 var port = 8081
 app.listen(port)
-console.log("Static server listening on " + port )
+console.log("Static server listening on " + port)
 //
 // BORING SERVER
 //
