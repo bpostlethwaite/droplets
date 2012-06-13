@@ -46,30 +46,6 @@ body * {
 }
 /**** CATEGORY BUTTONS ***********************************/
 .category {
-<<<<<<< HEAD
-  -ms-box-shadow:0 1px 0 0 #BF8B11;
-  -webkit-box-shadow:0 1px 0 0 #BF8B11;
-  box-shadow:0 1px 0 0 #BF8B11;
-  background-color:transparent;
-  width:120px;
-  -ms-border-radius:6px;
-  -webkit-border-radius:6px;
-  border-radius:6px;
-  border:1px solid #DBA118;
-  margin-bottom: 3px;
-  margin-top: 3px;
-  display:inline-block;
-  padding:4px 4px;
-  text-decoration:none;
-}
-.category:hover {
-  position:relative;
-  top:1px;
-  -ms-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
-  -webkit-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
-  box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
-  border:1px solid #E3DD29;
-=======
     -ms-box-shadow:0 1px 0 0 #BF8B11;
     -webkit-box-shadow:0 1px 0 0 #BF8B11;
     box-shadow:0 1px 0 0 #BF8B11;
@@ -92,27 +68,17 @@ body * {
     -webkit-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
     box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
     border:1px solid #E3DD29;
->>>>>>> dev
 }
 .category:hover > h2 {
     color:#E3DD29;
 }
 .category.selected {
-<<<<<<< HEAD
-  position:relative;
-	top:1px;
-  -ms-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
-  -webkit-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
-  box-shadow:inset 0 0 0 0 #B0AB0E;
-  border:1px solid #E3DD29;
-=======
     position:relative;
     top:1px;
     -ms-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
     -webkit-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
     box-shadow:inset 0 0 0 0 #B0AB0E;
     border:1px solid #E3DD29;
->>>>>>> dev
 }
 .category.selected > h2 {
     color:#E3DD29;
