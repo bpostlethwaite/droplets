@@ -80,7 +80,7 @@ jQuery(document).ready(function($) {
 
   function animate() {
     renderer()
-    setInterval(animate, 100)
+    setTimeout(animate, 0)
   }
 
   animate()
