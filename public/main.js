@@ -78,12 +78,7 @@ jQuery(document).ready(function($) {
     }
   }
 
-  function animate() {
-    renderer()
-    setInterval(animate, 100)
-  }
-
-  animate()
+  setInterval(renderer, 100)
 
 }) // end JQuery
 
