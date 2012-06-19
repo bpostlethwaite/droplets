@@ -1,5 +1,4 @@
 
-// HELPER FUNCS //////////////////////////////////////////////////////////
 function colorLuminance(hex, lum) {
   // validate hex string
   hex = String(hex).replace(/[^0-9a-f]/gi, '')
@@ -30,6 +29,7 @@ function buildColorGrad(baseShade, numElem, lum) {
   return nc
 }
 
-var colorgrad = buildColorGrad("#05050D", 26, 18)
+var colorgrad = buildColorGrad("#05050D", 41, 18)
 
-console.log(colorgrad)
+console.log(colorgrad[20])
+

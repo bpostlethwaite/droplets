@@ -13,5 +13,3 @@ _The website runs best on Chrome._
 ### Issues
 1. Strange Firefox bug: content does not fade in with delay on second access. I suspect the `opacity` property is not being reset to `0` when unselected.
 
-
-x
