@@ -4,7 +4,7 @@
 var server = require("node-static")
   , app = require("http").createServer(handler)
   , io = require("socket.io").listen(app)
-  , md = require("node-markdown").Markdown
+  , marked = require("marked")
   , fs = require('fs')
 
 // Set logging level
@@ -44,7 +44,7 @@ io.sockets.on('connection', function(socket) {
       console.log ("Problem reading README.md")
       return
     }
-    var rdhtml = md(data)
+    var rdhtml = marked(data)
     socket.emit('readme', rdhtml)
   })
 //

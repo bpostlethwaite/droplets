@@ -2,20 +2,29 @@
   "author": "Ben Postlethwaite <post.ben.here@gmail.com>",
   "name": "droplets",
   "description": "javascript & node wavefield generator with html display",
-  "version": "0.0.0",
-  "homepage": "https://github.com/benjpost/droplets",
+  "version": "0.1.5",
+  "homepage": "https://github.com/bpostlethwaite/droplets",
   "repository": {
     "type": "git",
-    "url": "git://github.com/benjpost/droplets.git"
+    "url": "git://github.com/bpostlethwaite/droplets.git"
   },
   "main": "server.js",
   "dependencies": {
-    "node-static" : "*",
-    "socket.io" : "*"
+    "node-static": ">= 0.5.0",
+    "socket.io": ">= 0.9",
+    "marked": "0.2.x"
   },
   "devDependencies": {},
   "optionalDependencies": {},
   "engines": {
-    "node": "*"
+    "node": "0.6.x"
+  },
+  "subdomain": "droplets",
+  "domains": [
+    "benpostlethwaite.ca",
+    "www.benpostlethwaite.ca"
+  ],
+  "scripts": {
+    "start": "server.js"
   }
 }

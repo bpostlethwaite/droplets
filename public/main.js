@@ -6,12 +6,12 @@
 jQuery(document).ready(function($) {
 /// Set vars, dims and elements //////////////////////////////////////
   var el = document.getElementById('wave')
-  var socket = io.connect("50.116.7.59")
+  var socket = io.connect("wss://droplets.jit.su")
   var field = wavefield()
   var canvas = document.getElementById('canvas')
   var c = canvas.getContext('2d')
-  var xlen = 10
-  var ylen = 10
+  var xlen = 15
+  var ylen = 15
   var maxval = 40 // +/- 4
   var colorgrad = buildColorGrad("#05050D", maxval*2 + 1, 18)
 
@@ -43,7 +43,9 @@ jQuery(document).ready(function($) {
     if ( $(this).hasClass('selected') ) { // If it wasn't previously selected then continue and engage.
       $("."+ $(this).attr('id') ).addClass('selected') //find matching classes associated w/ ID
     }
-  })
+  }) // end click
+// ScrollBar /////////////////////////////////////////
+
 
 ////////// SOCKETS ////////////////////////////////////////////////////////////////
   socket.on('readme', function(readme) {
@@ -53,32 +55,29 @@ jQuery(document).ready(function($) {
   socket.on('newDroplet', function(d) {
     var ypix = Math.round( d.y * window.innerHeight ) //recover from percentage
       , xpix = Math.round( d.x * window.innerWidth ) // to this user resolution
-    field.addDroplet( Math.floor(ypix / ylen), Math.floor(xpix / xlen) )
+    field.addDroplet( (ypix / ylen) | 0, (xpix / xlen) | 0 )
   })
 
 // Draw Canvas /////////////////////////////////////////////////////////////////
 
   function renderer () {
-    var row, col, ind, val
+    var row, col, ind
       , f = field.update()
       , rows = field.getHeight()
       , cols = field.getWidth()
-    //c.clearRect(0, 0, canvas.width, canvas.height)
     for (row = 0; row < rows; ++row) {
       for (col = 0; col < cols; ++col) {
-        val = f[row][col] * 10
-        ind = val | 0  // floor if > 0, ceil if < 0
+        ind = f[row][col] * 10 | 0 // floor if > 0, ceil if < 0
         if (Math.abs(ind) > maxval) {
           ind = maxval * (ind < 0 ? -1 : 1)
         }
-        ind += 40 // start ind at index 0
-        c.fillStyle = colorgrad[ind]
+        c.fillStyle = colorgrad[ind += maxval] // start ind at index 0
         c.fillRect(col*xlen, row*ylen, xlen, ylen)
       }
     }
   }
 
-  setInterval(renderer, 100)
+  setInterval(renderer, 40)
 
 }) // end JQuery
 

@@ -26,7 +26,7 @@ body * {
 #overlay {
     position: absolute;
     top: 60px;
-    left: 60px;
+    left: 70px;
     pointer-events: none;
     z-index: 100;
 }
@@ -41,7 +41,6 @@ body * {
 #card {
     float: left;
     width: 180px;
-    height: 400px;
     -ms-border-radius: 15px;
     -webkit-border-radius: 15px;
     border-radius: 15px;
@@ -67,7 +66,7 @@ body * {
     position:relative;
     top:1px;
     -ms-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
-    -webkit-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
+    -webkit-box-shadow:0 0 10px 2px rgba(176, 171, 14,0.5);
     box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
     border:1px solid #E3DD29;
 }
@@ -79,7 +78,7 @@ body * {
     top:1px;
     -ms-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
     -webkit-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
-    box-shadow:inset 0 0 0 0 #B0AB0E;
+    box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
     border:1px solid #E3DD29;
 }
 .category.selected > h2 {
@@ -92,9 +91,9 @@ h1, h2, p  {
 h2 {
     font-weight: normal;
 }
-dt {
+dd {
     font-style: italic;
-    text-align: right;
+    text-align: left;
 }
 /**** CONNECTORS ***********************************/
 .connector {
@@ -130,14 +129,24 @@ dt {
     -webkit-animation:move 1s linear forwards;
 }
 /**** INFORMATION PANELS ***********************************/
+#scrollbar1 { width: 360px; clear: both; margin: 20px 0 10px; }
+#scrollbar1 .viewport { width: 340px !important; height: 400px; overflow: hidden; position: relative; }
+#scrollbar1 .overview { list-style: none; position: absolute; left: 0; top: 0; }
+#scrollbar1 .thumb .end,
+#scrollbar1 .thumb { background-color: #003D5D; }
+#scrollbar1 .scrollbar { position: relative; float: right; width: 15px !important; }
+#scrollbar1 .track { background-color: #D8EEFD; height: 100%; width:13px; position: relative; padding: 0 1px; }
+#scrollbar1 .thumb { height: 20px; width: 13px; cursor: pointer; overflow: hidden; position: absolute; top: 0; }
+#scrollbar1 .thumb .end { overflow: hidden; height: 5px; width: 13px; }
+#scrollbar1 .disable{ display: none; }
+
+
 .infopane {
     display:none;
     float: left;
     margin: 0 68px;
-    min-height: 400px;
-    overflow-y: auto;
-    overflow-x: hidden;
     width: 0;
+    height: 400px;
     padding: 0 0 !important;
     -ms-border-radius: 15px;
     -webkit-border-radius: 15px;
@@ -154,10 +163,9 @@ dt {
 /**** CONTENT ***********************************/
 .content {
     opacity: 0;
-    padding: 0 21px;
+    padding: 10px 21px;
 }
 .content.selected {
-    min-height: 400px;
     -webkit-animation: appear 1s 2s normal both;
     -moz-animation:appear 1s 2s normal both;
     -ms-animation: appear 1s 2s normal both;
