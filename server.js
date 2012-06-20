@@ -8,10 +8,10 @@ var server = require("node-static")
   , fs = require('fs')
 
 // Set logging level
-io.set('log level', 1)
+io.set('log level', 3)
 // Listen on port
-//var port = process.env.PORT
-var port = 8081
+var port = process.env.PORT
+//var port = 8081
 app.listen(port)
 console.log("Static server listening on " + port)
 //
@@ -20,9 +20,9 @@ console.log("Static server listening on " + port)
 var clientFiles = new server.Server("./public")
 function handler(request, response) {
   request.addListener('end', function() {
-//
-// Serve files!
-//
+    //
+    // Serve files!
+    //
     clientFiles.serve(request, response, function(err, res) {
       if (err) { // An error as occured
         console.log("> Error serving " + request.url + " - " + err.message)
@@ -35,24 +35,64 @@ function handler(request, response) {
     })
   })
 }
+//
+// Get Content, use call back to start up the socketIO
+// Loop through files asyncronously until all files
+// read, then call callback with accumulated data and
+// run socketIO
+function readAndConnect(items, cb) {
+  var i
+    , count = 0
+    , content = []
+  for (i = 0; i < items.length; ++i) {
+    parseMarkdown(items[i])
+  }
 
-io.sockets.on('connection', function(socket) {
-//
-// PARSE AND EMIT DATA
-//
-  fs.readFile("README.md", 'utf8', function (err, data) {
-    if (err) {
-      console.log ("Problem reading README.md")
-      return
+  function parseMarkdown(file) {
+    fs.readFile("docs/" + file, 'utf8', function (err, data) {
+      var html
+      if (err) {
+          console.log("error reading " + file)
+      }
+      try {
+        html =  marked(data)
+      } catch(e) {
+        html = ''
+        console.log('Error converting ' + file + ' to html')
+      }
+      content.push({
+         "head": file.toLowerCase().slice(0,-3) // lop off the .md extension
+        ,"body": html
+        })
+      count += 1
+      if (count === files.length) {
+          cb(content)
+      }
+    }) //end readFrile
+  } // end parseMarkdown
+} // end ReadContent
+
+var files = ["README.md"]
+readAndConnect(files, function (data) {
+  //
+  // SOCKETS!
+  //
+  io.sockets.on('connection', function(socket) {
+    //
+    // Connect content
+    //
+    var i
+    for (i = 0; i < data.length; i++) {
+      socket.emit( data[i].head, data[i].body )
     }
-    var rdhtml = marked(data)
-    socket.emit('readme', rdhtml)
+    //
+    // Broadcast droplets
+    //
+    socket.on('clientDroplet', function(data) {
+      socket.broadcast.emit('newDroplet', data)
+      console.log(data.y, data.x)
+    })
   })
-//
-// DROPLETS
-//
-  socket.on('clientDroplet', function(data) {
-    socket.broadcast.emit('newDroplet', data)
-    console.log(data.y, data.x)
-  })
-})
+}) // end readContent call
+
+
