@@ -7,6 +7,7 @@ jQuery(document).ready(function($) {
 /// Set vars, dims and elements //////////////////////////////////////
   var el = document.getElementById('wave')
   var socket = io.connect("wss://droplets.jit.su")
+  //var socket = io.connect("http://droplets.benjp.c9.io")
   var field = wavefield()
   var canvas = document.getElementById('canvas')
   var c = canvas.getContext('2d')
@@ -48,8 +49,9 @@ jQuery(document).ready(function($) {
 
 
 ////////// SOCKETS ////////////////////////////////////////////////////////////////
-  socket.on('readme', function(readme) {
-    $('.content.tog3').html(readme)
+  socket.on('readme', function(data) {
+    console.log("detected a readme")
+    $('.content.tog3').html(data)
   })
 
   socket.on('newDroplet', function(d) {
