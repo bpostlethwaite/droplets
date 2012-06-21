@@ -2,7 +2,7 @@
   "author": "Ben Postlethwaite <post.ben.here@gmail.com>",
   "name": "droplets",
   "description": "javascript & node wavefield generator with html display",
-  "version": "0.1.5",
+  "version": "0.1.6-1",
   "homepage": "https://github.com/bpostlethwaite/droplets",
   "repository": {
     "type": "git",

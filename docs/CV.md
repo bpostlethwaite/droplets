@@ -1,37 +1,33 @@
-# Nathaniel Welch
-
+# Ben Postlethwaite
  * <post.ben.here@gmail.com>
-  * <http://www.benpostlethwaite.ca>
-   * 78-869-9361
+ * <http://www.benpostlethwaite.ca>
+ * 778-869-9361
 
-   ## Background
+## Education
 
-   I
+*Geophysics, M.S.*
+Fall 2006 - present
+University of British Columbia, Vancouver Canada.
 
-   I strive to be a quick learner and both a competent leader and capable worker. I am an Eagle Scout and was an active officer of the Cal Poly Linux Users Group for three years. I was awarded Cal Poly's Residence Hall Council member of the year for both 2006 and 2007. In my free time I enjoy contributing to open source projects, hiking, reading and listening to music.
+*First Aid Level I*
 
-   ## Education
+*WHIMIS certifications*
 
-   Geophysics, M.S.
-   Fall 2006 - present
-   University of British Columbia, Vancouver Canada.
+## Proficiency
+I have experience managing hard-rock and soft-rock geophysical datasets, handling information flow and visualization. I have performed inversions and written inversion code for gravity, DC and seismic data. I have strong mathematical ability especially linear algebra and numerical optimation. I can write code in Matlab, C, C++, Python and Javascript and have the base skills necessary to quickly pick up additional languages. I have written programs in all of these languages including desktop applications, server-side web programs and simulation and numerical solvers. I am a proficient Linux administrator and have run several servers including virtualized machines. I have spent a great amount of time outdoors and enjoy mountaineering and outdoor life. I consider this an asset for positions which involve extended periods working from camps.
 
-   First Aid Level I
+## Experience
+### Aurora Geosciences
+#### Crew Chief - April 2011 to September 2011
+I was a crew chief with [Aurora Geoscience](http://www.aurorageosciences.com) running magnetic, VLF and ELF surveys as well as working with an HLEM crew.
 
-   WHIMIS certifications
+ * Managed crew and equipment to complete survey goals safely and on time.
+ * Tested prototype ELF geophysical equipment and established a method for visualizing and working with output data.
+ * Identified areas that would be amenible to automation and wrote Perl and Python programs/scripts to speed up and reduce error in geophysical processing and survey design.
 
-   ## Proficiency
+### Active Turf Irrigation
+#### Installation and Maintenance Serviceman - March 2008 to September 2010
+I was an installer and serviceman with [Active Turf Irrigation](http://activeturfirrigation.com) working on larger industrial projects or handling maintainance contracts with a service van.
 
-   I have experience working with hard-rock and soft-rock geophysical datasets managing information flow and datamining. I have performed inversions and written inversion code for both DC and seismic.
-
-   ## Experience
-
-   ### Aurora Geosciences
-   #### Crew Chief - April 2011 to September 2011
-
-   I was a crew chief with [Aurora Geoscience](http://www.aurorageosciences.com) running magnetic, VLF and ELF surveys as well as working with an HLEM crew.
-
-    * Managed crew and equipment to complete survey goals safely and on time.
-    * Tested prototype ELF geophysical equipment and established a method for visualizing and working with output data.
-    * Identified areas that would be amenible to automation and wrote Perl and Python programs/scripts to speed up and reduce error in geophysical processing and survey design.
-
+ * Worked with larger crews in fast paced environment.
+ * Worked with, and managed expectations of, customers in planning and job roll out.
