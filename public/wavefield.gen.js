@@ -48,21 +48,6 @@ function wavefield() {
     return u
   }
 
-  function addDroplet (row, col) {
-    // adds a new gaussian droplet to u
-    // at specified coordinates.
-    // (For now just adds a point source)
-    var i, j
-    for ( i = -2; i <= 2; i++ ) {
-      for ( j = -2; j <= 2; j++ ) {
-        if( row + i >= 0 && col + j >= 0 &&
-            row + i < height && col + j < width) {
-          u[row + i][col + j] += mag * gauss[i + 2][j + 2]
-        }
-      }
-    }
-  }
-
   function conv2(image, kernel) {
     // iterates over image, then over kernel and
     // multiplies the flipped kernel coeffs
@@ -87,6 +72,21 @@ function wavefield() {
       }
     }
     return out
+  }
+
+  function addDroplet (row, col) {
+    // adds a new gaussian droplet to u
+    // at specified coordinates.
+    // (For now just adds a point source)
+    var i, j
+    for ( i = -2; i <= 2; i++ ) {
+      for ( j = -2; j <= 2; j++ ) {
+        if( row + i >= 0 && col + j >= 0 &&
+            row + i < height && col + j < width) {
+          u[row + i][col + j] += mag * gauss[i + 2][j + 2]
+        }
+      }
+    }
   }
 
   Array.matrix = function (m , n, initial) {
