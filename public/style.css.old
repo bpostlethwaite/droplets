@@ -1,26 +1,6 @@
-html, body {
-    background: #31317f; /* Use middle color of colorgrad */
-    width:  100%;
-    height: 100%;
-    margin: 0 0 0 0;
-}
-body * {
-    font-size: 12px;
-    line-height: 14px;
-    font-family: "Courier New";
-    color: #DBA118;
-}
-/**** GENERIC OVERLAY PROPS ***********************************/
-#overlay {
-    pointer-events: none;
-    width:  100%;
-    height: 100%;
-    z-index: 100;
-}
-#overlay > div {
-    background: rgb(31, 29, 30); /* The Fallback */
-    background: rgba(31, 29, 30, 0.5);
-    pointer-events: auto;
+* {
+    padding: 0;
+    margin: 0;
 }
 a {
     color:red !important;
@@ -29,22 +9,40 @@ a {
 a:hover {
     text-decoration: none;
 }
-h2 {
-    font-weight: normal;
+html, body {
+    background: #31317f; /* Use middle color of colorgrad */
+    width:  100%;
+    height: 100%;
+    margin: 0px;
+    overflow: hidden;
 }
-dd {
-    margin: 0 0 0 0;
-    font-style: italic;
+body * {
+    font-size: 12px;
+    line-height: 16px;
+    font-family: "Courier New";
+    color: #DBA118;
+}
+/**** GENERIC OVERLAY PROPS ***********************************/
+#overlay {
+    position: absolute;
+    top: 60px;
+    left: 60px;
+    pointer-events: none;
+    z-index: 100;
+}
+#overlay > div {
+    background: rgb(31, 29, 30); /* The Fallback */
+    background: rgba(31, 29, 30, 0.5);
+    /*padding: 0 27px 0 22px;*/
+    padding: 0 21px;
+    pointer-events: auto;
 }
 /**** CALLING CARD ***********************************/
 #card {
-    padding: 0 20px;
-    margin: 40px 0 0 40px;
     float: left;
     width: 180px;
     height: 400px;
     -ms-border-radius: 15px;
-    -moz-border-radius: 15px;
     -webkit-border-radius: 15px;
     border-radius: 15px;
 }
@@ -52,23 +50,23 @@ dd {
 .category {
     -ms-box-shadow:0 1px 0 0 #BF8B11;
     -webkit-box-shadow:0 1px 0 0 #BF8B11;
-    -moz-box-shadow:0 1px 0 0 #BF8B11;
     box-shadow:0 1px 0 0 #BF8B11;
     background-color:transparent;
     width:120px;
     -ms-border-radius:6px;
     -webkit-border-radius:6px;
-    -moz-border-radius:6px;
     border-radius:6px;
     border:1px solid #DBA118;
     margin-bottom: 3px;
     margin-top: 3px;
-    padding: 6px 0;
+    display: inline-block;
+    padding:4px 4px;
     text-decoration:none;
 }
 .category:hover {
+    position:relative;
+    top:1px;
     -ms-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
-    -moz-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
     -webkit-box-shadow:0 0 10px 2px rgba(176, 171, 14,0.5);
     box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
     border:1px solid #E3DD29;
@@ -77,8 +75,9 @@ dd {
     color:#E3DD29;
 }
 .category.selected {
+    position:relative;
+    top:1px;
     -ms-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
-    -moz-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
     -webkit-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
     box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
     border:1px solid #E3DD29;
@@ -87,36 +86,45 @@ dd {
     color:#E3DD29;
 }
 
-
+h1, h2, p  {
+    display: inline-block;
+}
+h2 {
+    font-weight: normal;
+}
+dd {
+    font-style: italic;
+    text-align: left;
+}
 /**** CONNECTORS ***********************************/
 .connector {
-    float: left;
-    padding: 3px 0 3px 0;
+    position:absolute;
     background:#E3DD29 !important;
     width:0 !important;
     height:1px;
+    left:140px;
     padding: 0 0 !important;
 }
 .connector.tog1.selected {
-    margin: 181px 0 0 -80px;
+    top: 128px;
     -moz-animation:move 1s linear forwards;
     -ms-animation:move 1s linear forwards;
     -webkit-animation:move 1s linear forwards;
 }
 .connector.tog2.selected {
-    margin: 215px 0 0 -80px;
+    top: 160px;
     -moz-animation:move 1s linear forwards;
     -ms-animation:move 1s linear forwards;
     -webkit-animation:move 1s linear forwards;
 }
 .connector.tog3.selected {
-    margin: 249px 0 0 -80px;
+    top: 192px;
     -moz-animation:move 1s linear forwards;
     -ms-animation:move 1s linear forwards;
     -webkit-animation:move 1s linear forwards;
 }
 .connector.tog4.selected {
-    margin: 283px 0 0 -80px;
+    top: 224px;
     -moz-animation:move 1s linear forwards;
     -ms-animation:move 1s linear forwards;
     -webkit-animation:move 1s linear forwards;
@@ -126,7 +134,7 @@ dd {
 .infopane {
     display:none;
     float: left;
-    margin: 40px 0 0 0;
+    margin: 0 68px;
     width: 0;
     min-height: 400px;
     overflow-y: auto;
@@ -157,17 +165,6 @@ dd {
     -ms-animation: appear 1s 2s normal both;
     animation-delay: appear 1s 2s normal both;
 }
-
-/**** CANVAS ***************************************/
-#canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 0;
-  height: 100%;
-  width: 100%;
-}
-
 /**** ANIMATIONS ***********************************/
 @-moz-keyframes move {
     0%   { width:0;}
