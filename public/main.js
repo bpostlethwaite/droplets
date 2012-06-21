@@ -53,7 +53,6 @@ jQuery(document).ready(function($) {
 
 ////////// SOCKETS ////////////////////////////////////////////////////////////////
   socket.on('readme', function(data) {
-    console.log("detected a readme")
     $('.content.tog3').html(data)
   })
 
