@@ -90,7 +90,6 @@ readAndConnect(files, function (data) {
     //
     socket.on('clientDroplet', function(data) {
       socket.broadcast.emit('newDroplet', data)
-      console.log(data.y, data.x)
     })
   })
 }) // end readContent call
