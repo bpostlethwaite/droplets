@@ -45,10 +45,10 @@ jQuery(document).ready(function($) {
 
 // MODE FUNCTIONS ///////////////////////////////////////////////////
   function waveEqnMode() {
-    colorgrad = buildColorGrad("#05050D", maxval*2 + 1, 18)
-    update = field.waveUpdate
-    adj = 40
     maxval = 40 // +/-
+    adj = 40
+    colorgrad = buildColorGrad("#05050D", maxval*2 + 1, 20)
+    update = field.waveUpdate
     $(window).trigger('resize')
     // Click Binding //////////////////////////////////////////
     $('html').click(function(evt) {
@@ -70,10 +70,10 @@ jQuery(document).ready(function($) {
   } // END WAVEEQNMODE
 
   function diffusionEqnMode() {
-    colorgrad = buildColorGrad("#05050D", maxval*2 + 1, 18)
-    update = field.diffusionUpdate
     adj = 0
     maxval = 80
+    colorgrad = buildColorGrad("#05050D", maxval*2 + 1, 18)
+    update = field.diffusionUpdate
     $(window).trigger('resize')
     // Click Binding //////////////////////////////////////////
     $('html').click(function(evt) {

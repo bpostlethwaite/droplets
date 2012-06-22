@@ -8,7 +8,7 @@
 
 <body>
 
-  <canvas id="canvas" width="400" height="400"></canvas>
+  <canvas id="canvas" width="1800" height="400"></canvas>
 
   <script>
     var canvas = document.getElementById('canvas')
@@ -44,11 +44,11 @@
       return nc
     }
 
-    var colorgrad = buildColorGrad("#05050D", 41, 18)
+    var colorgrad = buildColorGrad("#05050D", 81, 40)
     var i
     for (i = 0; i < colorgrad.length; ++i) {
       c.fillStyle = colorgrad[i] // start ind at index 0
-      c.fillRect(i*10, i*10, 10, 10)
+      c.fillRect(i*10, 1, 10, 400)
     }
 
   </script>
