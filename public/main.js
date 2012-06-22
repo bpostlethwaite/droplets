@@ -8,8 +8,8 @@ jQuery(document).ready(function($) {
   , field = fieldgen()
   , canvas = document.getElementById('canvas')
   , c = canvas.getContext('2d')
-  , xlen = 15
-  , ylen = 15
+  , xlen = 10
+  , ylen = 10
   , maxval
   , adj
   , colorgrad
@@ -45,10 +45,10 @@ jQuery(document).ready(function($) {
 
 // MODE FUNCTIONS ///////////////////////////////////////////////////
   function waveEqnMode() {
-    colorgrad = buildColorGrad("#05050D", maxval*2 + 1, 18)
-    update = field.waveUpdate
-    adj = 40
     maxval = 40 // +/-
+    adj = 40
+    colorgrad = buildColorGrad("#05050D", maxval*2 + 1, 20)
+    update = field.waveUpdate
     $(window).trigger('resize')
     // Click Binding //////////////////////////////////////////
     $('html').click(function(evt) {
@@ -70,12 +70,113 @@ jQuery(document).ready(function($) {
   } // END WAVEEQNMODE
 
   function diffusionEqnMode() {
-    colorgrad = buildColorGrad("#05050D", maxval*2 + 1, 18)
-    update = field.diffusionUpdate
     adj = 0
     maxval = 80
+    , colorgrad = [
+        "#000092"
+      , "#00009E"
+      , "#0000AA"
+      , "#0000B6"
+      , "#0000C2"
+      , "#0000CE"
+      , "#0000DB"
+      , "#0000E7"
+      , "#0000F3"
+      , "#0000FF"
+      , "#000CFF"
+      , "#0018FF"
+      , "#0024FF"
+      , "#0031FF"
+      , "#003DFF"
+      , "#0049FF"
+      , "#0055FF"
+      , "#0061FF"
+      , "#006DFF"
+      , "#0079FF"
+      , "#0086FF"
+      , "#0092FF"
+      , "#009EFF"
+      , "#00AAFF"
+      , "#00B6FF"
+      , "#00C2FF"
+      , "#00CEFF"
+      , "#00DBFF"
+      , "#00E7FF"
+      , "#00F3FF"
+      , "#00FFFF"
+      , "#0CFFF3"
+      , "#18FFE7"
+      , "#24FFDB"
+      , "#31FFCE"
+      , "#3DFFC2"
+      , "#49FFB6"
+      , "#55FFAA"
+      , "#61FF9E"
+      , "#6DFF92"
+      , "#79FF86"
+      , "#86FF79"
+      , "#92FF6D"
+      , "#9EFF61"
+      , "#AAFF55"
+      , "#B6FF49"
+      , "#C2FF3D"
+      , "#CEFF31"
+      , "#DBFF24"
+      , "#E7FF18"
+      , "#F3FF0C"
+      , "#FFFF00"
+      , "#FFF300"
+      , "#FFE700"
+      , "#FFDB00"
+      , "#FFCE00"
+      , "#FFC200"
+      , "#FFB600"
+      , "#FFAA00"
+      , "#FF9E00"
+      , "#FF9200"
+      , "#FF8600"
+      , "#FF7900"
+      , "#FF6D00"
+      , "#FF6100"
+      , "#FF5500"
+      , "#FF4900"
+      , "#FF3D00"
+      , "#FF3100"
+      , "#FF2400"
+      , "#FF1800"
+      , "#FF0C00"
+      , "#FF0000"
+      , "#F30000"
+      , "#E70000"
+      , "#DB0000"
+      , "#CE0000"
+      , "#C20000"
+      , "#B60000"
+      , "#AA0000"
+      , "#9E0000"
+      ]
+    //colorgrad = buildColorGrad("#05050D", maxval*2 + 1, 18)
+    update = field.diffusionUpdate
     $(window).trigger('resize')
     // Click Binding //////////////////////////////////////////
+    var intervalId;
+
+  $("html").mousedown(function() {
+    var xpix, ypix
+    $("html").mousemove(function(e){
+      xpix = e.pageX
+      ypix = e.pageY
+    })
+    intervalId = setInterval(tracedrops, 50);
+    function tracedrops() {
+      field.addDroplet((ypix / ylen) | 0 , (xpix / xlen) | 0 , 15)
+    }
+  }).mouseup(function() {
+      clearInterval(intervalId)
+      $('html').unbind('mousemove')
+    })
+
+
     $('html').click(function(evt) {
       var d = {}
         , xpix = evt.pageX
@@ -83,13 +184,13 @@ jQuery(document).ready(function($) {
       d.x = xpix / window.innerWidth // turn into percentage
       d.y = ypix / window.innerHeight // before sending
       socket.emit('clientDroplet', d)
-      field.addDroplet( (ypix / ylen) | 0 , (xpix / xlen) | 0 , 55)
+      field.addDroplet( (ypix / ylen) | 0 , (xpix / xlen) | 0 , 15)
     })
 
     socket.on('newDroplet', function(d) {
       var ypix = Math.round( d.y * window.innerHeight ) //recover from percentage
         , xpix = Math.round( d.x * window.innerWidth ) // to this user resolution
-      field.addDroplet( (ypix / ylen) | 0, (xpix / xlen) | 0 , 55)
+      field.addDroplet( (ypix / ylen) | 0, (xpix / xlen) | 0 , 15)
     })
     return
   } // END DIFFUSIONEQMODE
