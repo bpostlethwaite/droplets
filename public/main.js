@@ -47,27 +47,24 @@ jQuery(document).ready(function($) {
   function waveEqnMode() {
     maxval = 40 // +/-
     adj = 40
-    colorgrad = buildColorGrad("#05050D", maxval*2 + 1, 20)
+    var colorgrada = buildColorGrad("#000092", 41, -1).reverse()
+    var colorgradb = buildColorGrad("#000092", 41, 1)
+    colorgradb.shift()
+    colorgrad = colorgrada.concat(colorgradb)
     update = field.waveUpdate
     $(window).trigger('resize')
     // Click Binding //////////////////////////////////////////
     $('html').click(function(evt) {
-      var d = {}
-        , xpix = evt.pageX
-        , ypix = evt.pageY
-      d.x = xpix / window.innerWidth // turn into percentage
-      d.y = ypix / window.innerHeight // before sending
-      socket.emit('clientDroplet', d)
+        var xpix = evt.pageX
+          , ypix = evt.pageY
+      socket.emit('clientDroplet',{
+          x: xpix / window.innerWidth // turn into percentage
+        , y: ypix / window.innerHeight // before sending
+        })
       field.addDroplet( (ypix / ylen) | 0 , (xpix / xlen) | 0 , 15)
     })
-
-    socket.on('newDroplet', function(d) {
-      var ypix = Math.round( d.y * window.innerHeight ) //recover from percentage
-        , xpix = Math.round( d.x * window.innerWidth ) // to this user resolution
-      field.addDroplet( (ypix / ylen) | 0, (xpix / xlen) | 0 , 15)
-    })
-    return
   } // END WAVEEQNMODE
+
 
   function diffusionEqnMode() {
     adj = 0
@@ -155,50 +152,40 @@ jQuery(document).ready(function($) {
       , "#AA0000"
       , "#9E0000"
       ]
-    //colorgrad = buildColorGrad("#05050D", maxval*2 + 1, 18)
     update = field.diffusionUpdate
     $(window).trigger('resize')
-    // Click Binding //////////////////////////////////////////
-    var intervalId;
 
-  $("html").mousedown(function() {
+    // Click Binding //////////////////////////////////////////
     var xpix, ypix
+
     $("html").mousemove(function(e){
       xpix = e.pageX
       ypix = e.pageY
     })
-    intervalId = setInterval(tracedrops, 50);
+
+    setInterval(tracedrops, 50)
+
     function tracedrops() {
-      field.addDroplet((ypix / ylen) | 0 , (xpix / xlen) | 0 , 15)
-    }
-  }).mouseup(function() {
-      clearInterval(intervalId)
-      $('html').unbind('mousemove')
-    })
-
-
-    $('html').click(function(evt) {
-      var d = {}
-        , xpix = evt.pageX
-        , ypix = evt.pageY
-      d.x = xpix / window.innerWidth // turn into percentage
-      d.y = ypix / window.innerHeight // before sending
-      socket.emit('clientDroplet', d)
       field.addDroplet( (ypix / ylen) | 0 , (xpix / xlen) | 0 , 15)
-    })
+      socket.emit('clientDroplet', {
+          x: xpix / window.innerWidth
+        , y: ypix / window.innerHeight
+      })
+    }
+  } // END DIFFUSIONEQMODE
 
-    socket.on('newDroplet', function(d) {
+// SET MODE //////////////////////////////////////////////////////////
+  diffusionEqnMode()
+
+// Crazy! If any event newDroplet, it acts no matter the mode!
+  socket.on('newDroplet', function(d) {
       var ypix = Math.round( d.y * window.innerHeight ) //recover from percentage
         , xpix = Math.round( d.x * window.innerWidth ) // to this user resolution
       field.addDroplet( (ypix / ylen) | 0, (xpix / xlen) | 0 , 15)
     })
-    return
-  } // END DIFFUSIONEQMODE
 
-// SET MODE //////////////////////////////////////////////////////////
-  //waveEqnMode()
-  diffusionEqnMode()
-// Draw Canvas /////////////////////////////////////////////////////////////////
+
+  // Draw Canvas /////////////////////////////////////////////////////////////////
   function renderer () {
     var row, col, ind
       , f = update()

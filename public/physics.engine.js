@@ -9,7 +9,7 @@ function fieldgen() {
     , dx = 1
     , gamma = 0.02 // wave decay factor
     , vel = 2       // wave velocity
-    , alpha = 0.1     // diffusion paramter
+    , alpha = 0.5     // diffusion paramter
     , u             // main data array
     , un            // next time step data array
     , up            // previous time step data array
