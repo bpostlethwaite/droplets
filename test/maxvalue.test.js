@@ -1,7 +1,7 @@
 /*jshint asi: true*/
 /*jshint laxcomma: true*/
 "use strict";
-var field = require("../public/wavefield.gen.js")()
+var field = require("../public/physics.engine.js")()
 var printarr = require("../printArray.js")
 
 var m = 25
@@ -16,13 +16,14 @@ for (i = 0; i <= 200; ++i) {
 
 field.setResolution(m, n)
 
+
 for (i = 0; i < 500; i++) {
-  var u = field.update()
+  var u = field.diffusionUpdate()
   maxval(u)
   distribution(u)
   var row = Math.floor( Math.random() * m  )
   var col = Math.floor( Math.random() * n  )
-  field.addDroplet(row , col)
+  field.addDroplet(row , col, 35)
 }
 
 console.log(dist)
