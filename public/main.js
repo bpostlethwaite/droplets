@@ -2,24 +2,20 @@
 /*jshint laxcomma: true*/
 "use strict";
 
-
 jQuery(document).ready(function($) {
-/// Set vars, dims and elements //////////////////////////////////////
-  var el = document.getElementById('wave')
   var socket = io.connect("http://droplets.benjp.c9.io")
   //  var socket = io.connect("wss://droplets.jit.su")
-  var field = wavefield()
-  var canvas = document.getElementById('canvas')
-  var c = canvas.getContext('2d')
-  var xlen = 15
-  var ylen = 15
-  var maxval = 40 // +/- 4
-  var colorgrad = buildColorGrad("#05050D", maxval*2 + 1, 18)
-//  var shapeArray = buildShapeArray(xlen, ylen, colorgrad)
-//  var time = 0
+  , field = fieldgen()
+  , canvas = document.getElementById('canvas')
+  , c = canvas.getContext('2d')
+  , xlen = 15
+  , ylen = 15
+  , maxval
+  , adj
+  , colorgrad
+  , update
 
 
-/////////////BINDINGS//////////////////////////////////////////////////////
 // ON RESIZE ///////////////////////////////////////
   $(window).resize(function(e) {
     var rows = Math.floor(window.innerHeight / ylen)
@@ -27,47 +23,84 @@ jQuery(document).ready(function($) {
     field.setResolution(rows, cols)
     canvas.width  = window.innerWidth
     canvas.height = window.innerHeight
-  }).trigger('resize')
-
-// Clicks //////////////////////////////////////////
-  $('html').click(function(evt) {
-    var d = {}
-      , xpix = evt.pageX
-      , ypix = evt.pageY
-    d.x = xpix / window.innerWidth // turn into percentage
-    d.y = ypix / window.innerHeight // before sending
-    socket.emit('clientDroplet', d)
-    field.addDroplet( (ypix / ylen) | 0 , (xpix / xlen) | 0 )
   })
 
 // This turns on and off button selected class for animations
   $(".category").click(function() {
-    $('.selected').not(this).removeClass('selected') //turn of all previously selected
-    $(this).toggleClass('selected') // Toggle this buttons class.
-    if ( $(this).hasClass('selected') ) { // If it wasn't previously selected then continue and engage.
-      $("."+ $(this).attr('id') ).addClass('selected') //find matching classes associated w/ ID
+    //turn of all previously selected
+    $('.selected').not(this).removeClass('selected')
+    // Toggle this buttons class.
+    $(this).toggleClass('selected')
+    // If it wasn't previously selected then continue and engage.
+    if ( $(this).hasClass('selected') ) {
+      //find matching classes associated w/ ID
+      $("."+ $(this).attr('id') ).addClass('selected')
     }
   }) // end click
-// ScrollBar /////////////////////////////////////////
 
-
-////////// SOCKETS ////////////////////////////////////////////////////////////////
+// CONTENT SOCKETS /////////////////////////////////////////////////
   socket.on('readme', function(data) {
     $('.content.tog3').html(data)
   })
 
-  socket.on('newDroplet', function(d) {
-    var ypix = Math.round( d.y * window.innerHeight ) //recover from percentage
-      , xpix = Math.round( d.x * window.innerWidth ) // to this user resolution
-    field.addDroplet( (ypix / ylen) | 0, (xpix / xlen) | 0 )
-  })
+// MODE FUNCTIONS ///////////////////////////////////////////////////
+  function waveEqnMode() {
+    colorgrad = buildColorGrad("#05050D", maxval*2 + 1, 18)
+    update = field.waveUpdate
+    adj = 40
+    maxval = 40 // +/-
+    $(window).trigger('resize')
+    // Click Binding //////////////////////////////////////////
+    $('html').click(function(evt) {
+      var d = {}
+        , xpix = evt.pageX
+        , ypix = evt.pageY
+      d.x = xpix / window.innerWidth // turn into percentage
+      d.y = ypix / window.innerHeight // before sending
+      socket.emit('clientDroplet', d)
+      field.addDroplet( (ypix / ylen) | 0 , (xpix / xlen) | 0 , 15)
+    })
 
+    socket.on('newDroplet', function(d) {
+      var ypix = Math.round( d.y * window.innerHeight ) //recover from percentage
+        , xpix = Math.round( d.x * window.innerWidth ) // to this user resolution
+      field.addDroplet( (ypix / ylen) | 0, (xpix / xlen) | 0 , 15)
+    })
+    return
+  } // END WAVEEQNMODE
+
+  function diffusionEqnMode() {
+    colorgrad = buildColorGrad("#05050D", maxval*2 + 1, 18)
+    update = field.diffusionUpdate
+    adj = 0
+    maxval = 80
+    $(window).trigger('resize')
+    // Click Binding //////////////////////////////////////////
+    $('html').click(function(evt) {
+      var d = {}
+        , xpix = evt.pageX
+        , ypix = evt.pageY
+      d.x = xpix / window.innerWidth // turn into percentage
+      d.y = ypix / window.innerHeight // before sending
+      socket.emit('clientDroplet', d)
+      field.addDroplet( (ypix / ylen) | 0 , (xpix / xlen) | 0 , 55)
+    })
+
+    socket.on('newDroplet', function(d) {
+      var ypix = Math.round( d.y * window.innerHeight ) //recover from percentage
+        , xpix = Math.round( d.x * window.innerWidth ) // to this user resolution
+      field.addDroplet( (ypix / ylen) | 0, (xpix / xlen) | 0 , 55)
+    })
+    return
+  } // END DIFFUSIONEQMODE
+
+// SET MODE //////////////////////////////////////////////////////////
+  //waveEqnMode()
+  diffusionEqnMode()
 // Draw Canvas /////////////////////////////////////////////////////////////////
-
-
   function renderer () {
     var row, col, ind
-      , f = field.update()
+      , f = update()
       , rows = field.getHeight()
       , cols = field.getWidth()
     for (row = 0; row < rows; ++row) {
@@ -76,63 +109,17 @@ jQuery(document).ready(function($) {
         if (Math.abs(ind) > maxval) {
           ind = maxval * (ind < 0 ? -1 : 1)
         }
-        c.fillStyle = colorgrad[ind += maxval] // start ind at index 0
+        c.fillStyle = colorgrad[ind += adj] // start ind at index 0
         c.fillRect(col*xlen, row*ylen, xlen, ylen)
       }
     }
   }
 
-  function rendererII () {
-    var row, col, ind, val
-    , f = field.update()
-    , rows = field.getHeight()
-    , cols = field.getWidth()
-    for (row = 0; row < rows; ++row) {
-      for (col = 0; col < cols; ++col) {
-        val = f[row][col] * 10
-        ind = val | 0  // floor if > 0, ceil if < 0
-        if (Math.abs(ind) > maxval) {
-          ind = maxval * (ind < 0 ? -1 : 1)
-        }
-        ind += 40 // start ind at index 0
-        c.drawImage(shapeArray[ind], col*xlen, row*ylen)
-      }
-    }
-  }
-
-  setInterval(renderer, 50)
-
-  //field.addDroplet( Math.floor(50 / ylen), Math.floor(150 / xlen) )
-  //field.addDroplet( Math.floor(350 / ylen), Math.floor(350 / xlen) )
-
-/*
-  var count = 0
-  function animate() {
-    var s = Date.now()
-    renderer()
-    console.log(Date.now() - s)
-    time += Date.now() - s
-    if (++count === 1000) {
-      console.log(time / 1000)
-      return
-    }
-    setTimeout(animate, 0)
-  }
-*/
-
-
-
-
-// START ANIMATION /////////////////////////////////////////////////////////
-  //animate()
-
-  /* *** FOR TESTING PRERENDERED SQUARES ***
-  for (var ii = 0; ii < shapeArray.length; ++ii) {
-    c.drawImage(shapeArray[ii], ii*xlen, ii*ylen)
-  }
-  */
+// LOOP WITH RENDER FUNC
+  setInterval(renderer, 40)
 
 }) // end JQuery
+
 
 // HELPER FUNCS //////////////////////////////////////////////////////////
 function colorLuminance(hex, lum) {
@@ -164,31 +151,3 @@ function buildColorGrad(baseShade, numElem, lum) {
   }
   return nc
 }
-
-// PRE-RENDER FUNCS //
-function renderToCanvas (width, height, renderFunction) {
-    var buffer = document.createElement('canvas')
-    buffer.width = width
-    buffer.height = height
-    renderFunction(buffer.getContext('2d'))
-    return buffer;
-}
-
-
-  function buildShapeArray(width, height, colorArray) {
-    var i, out = []
-    for (i = 0; i < colorArray.length; ++i) {
-      out[i] = renderToCanvas(width, height, function (ctx) {
-        ctx.fillStyle = colorArray[i]
-        ctx.fillRect(0, 0, width, height)
-      })
-    }
-    return out
-  }
-
-
-// If using an overlay, or area you don't want to
-// receive mouseclicks from use:
-// $('#sacredcontainer').click(function(event){
-//      event.stopPropagation()
-//  })
