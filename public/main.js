@@ -95,8 +95,9 @@ jQuery(document).ready(function($) {
   , ylen = 10
   , rows
   , cols
-  , sprites = []
-  , mag
+  , xpix
+  , ypix
+  , cfg = {}
 
 // ON RESIZE ///////////////////////////////////////
   $(window).resize(function(e) {
@@ -105,7 +106,7 @@ jQuery(document).ready(function($) {
     field.setResolution(rows, cols)
     canvas.width  = window.innerWidth
     canvas.height = window.innerHeight
-    renderSprites.s = buildSprites(10)
+    cfg.s = buildSprites(4)
   })
 
 // This turns on and off button selected class for animations
@@ -127,50 +128,45 @@ jQuery(document).ready(function($) {
   })
 
 // MODE FUNCTIONS ///////////////////////////////////////////////////
-  
+
   function waveEqnMode() {
     $(window).trigger('resize')
     var colorgrada = buildColorGrad("#000092", 41, -1).reverse()
       , colorgradb = buildColorGrad("#000092", 41, 1)
-    
     colorgradb.shift()
-    
-    var colorgrad = colorgrada.concat(colorgradb)
-    mag = 15
-    
+
+    cfg.mag = 15
     // Bind Click //////////////////////////////////////////
     $('html').unbind('click') // get rid of previous bindings
     $('html').click(function(evt) {
-        var xpix = evt.pageX
-          , ypix = evt.pageY
+        var xp = evt.pageX
+          , yp = evt.pageY
       socket.emit('clientDroplet',{
-          x: xpix / window.innerWidth // turn into percentage
-        , y: ypix / window.innerHeight // before sending
+          x: xp / window.innerWidth // turn into percentage
+        , y: yp / window.innerHeight // before sending
         })
-      field.addDroplet( (ypix / ylen) | 0 , (xpix / xlen) | 0 , mag)
-    
+      field.addDroplet( (yp / ylen) | 0 , (xp / xlen) | 0 , cfg.mag)
+    })
     // Set render configurations
-    renderField.update = fieled.waveUpdate 
-    renderField.scale = 10
-    renderField.maxval = 40 // +/-
-    renderField.adj = 40
-    
-    // Start Animation   
+    cfg.update = field.waveUpdate
+    cfg.scale = 10
+    cfg.maxval = 40 // +/-
+    cfg.adj = 40
+    cfg.cg = colorgrada.concat(colorgradb)
+    // Start Animation
     setInterval(renderField, 50)
 
     } // END WAVEEQNMODE
 
 
-
-
   function diffusionEqnMode() {
     $(window).trigger('resize')
-    mag = 30
-
+    cfg.mag = 30
+    xpix = 0.5*Math.round(window.innerWidth)
+    ypix= 0.5*Math.round(window.innerHeight)
     // Click Binding //////////////////////////////////////////
-    var xpix, ypix
     $('html').unbind('click') // get rid of previous bindings
-		   
+
     $("html").mousemove(function(e){
       xpix = e.pageX
       ypix = e.pageY
@@ -178,8 +174,8 @@ jQuery(document).ready(function($) {
 
     setInterval(tracedrops, 50)
 
-    function traceMouse() {
-      field.addDroplet( (ypix / ylen) | 0 , (xpix / xlen) | 0 , mag)
+    function tracedrops() {
+      field.addDroplet( (ypix / ylen) | 0 , (xpix / xlen) | 0 , cfg.mag)
       socket.emit('clientDroplet', {
           x: xpix / window.innerWidth
         , y: ypix / window.innerHeight
@@ -188,23 +184,23 @@ jQuery(document).ready(function($) {
     }
 
     // Set render configurations
-    renderField.update = field.diffusionUpdate 
-    renderField.scale = 10
-    renderField.maxval = 80
-    renderField.adj = 0
-    
+    cfg.update = field.diffusionUpdate
+    cfg.scale = 10
+    cfg.maxval = 80
+    cfg.adj = 0
+    cfg.cg = colorgrad
 
-    // Start Animation   
+
+    // Start Animation
     setInterval(renderField, 50)
 
   } // END DIFFUSIONEQMODE
 
 
   function poissonEqnMode() {
-    var xpix, ypix
- 
     $(window).trigger('resize')
-
+    xpix = 0.5*Math.round(window.innerWidth)
+    ypix= 0.5*Math.round(window.innerHeight)
     // Click Binding //////////////////////////////////////////
     $('html').unbind('click') // get rid of previous bindings
     $('html').dblclick(function(evt) {
@@ -217,44 +213,42 @@ jQuery(document).ready(function($) {
       xpix = e.pageX
       ypix = e.pageY
     })
-  
+
     // Set renderField configurations
-    renderField.update = field.poissonUpdate 
-    renderField.scale = 26
-    renderField.maxval = 80
-    renderField.adj = 0
-
+    cfg.update = field.poissonUpdate
+    cfg.scale = 26
+    cfg.maxval = 80
+    cfg.adj = 0
+    cfg.cg = colorgrad
     // set renderSprites config
-    renderSprites.q1 = 1
-    renderSprites.q2 = 1
-    renderSprites.m = 1
+    cfg.q1 = 1
+    cfg.q2 = 0.1
+    cfg.m = 1
 
-    // Start Animation   
-    setInterval(renderField, 50)
+    // Start Animation
+    setInterval(renderSprites, 50)
 
   } // END PoissonEqnMode
 
-		   
-
 // If any event newDroplet, it acts no matter the mode!
   socket.on('newDroplet', function(d) {
-      var ypix = Math.round( d.y * window.innerHeight ) //recover from percentage
-        , xpix = Math.round( d.x * window.innerWidth ) // to this user resolution
-      field.addDroplet( (ypix / ylen) | 0, (xpix / xlen) | 0 , mag)
+      var yp = Math.round( d.y * window.innerHeight ) //recover from percentage
+        , xp = Math.round( d.x * window.innerWidth ) // to this user resolution
+      field.addDroplet( (yp / ylen) | 0, (xp / xlen) | 0 , cfg.mag)
     })
 
 
   // Draw Canvas /////////////////////////////////////////////////////////////////
   function renderField () {
     var row, col, ind
-      , f = this.update()
+      , f = cfg.update()
     for (row = 0; row < rows; ++row) {
       for (col = 0; col < cols; ++col) {
-        ind = f[row][col] * this.scale | 0 // floor if > 0, ceil if < 0
-        if (Math.abs(ind) > this.maxval) {
-          ind = maxval * (ind < 0 ? -1 : 1)
+        ind = f[row][col] * cfg.scale | 0 // floor if > 0, ceil if < 0
+        if (Math.abs(ind) > cfg.maxval) {
+          ind = cfg.maxval * (ind < 0 ? -1 : 1)
         }
-        c.fillStyle = this.colorgrad[ind += this.adj] // start ind at index 0
+        c.fillStyle = cfg.cg[ind += cfg.adj] // start ind at index 0
         c.fillRect(col*ylen, row*xlen, ylen, xlen)
       }
     }
@@ -269,44 +263,41 @@ jQuery(document).ready(function($) {
   // q1/m * (E + k*q2(r2-r1)/r^2) = dV/dt
   // Where E = -grad(Potential)
   // or E = -(X[i+1][j] - X[i][j])x -(X[i][j+1] - X[i][j])y
-    var i
-      , row
-      , col
-      , Ex
-      , Ey
-      , f = update()
+    var i, row, col, Ex, Ey, Fx, Fy, r
+      , f = cfg.update()
 
     // FIll OVER PREV SPRITES
     c.fillStyle = "#000092"
-    for (i = 0; i < sprites.length; i++) {
+    for (i = 0; i < cfg.s.length; i++) {
       c.beginPath()
-      c.arc(sprites[i].y, sprites[i].x, 11,0, Math.PI*2,true)
+      c.arc(cfg.s[i].y, cfg.s[i].x, 11,0, Math.PI*2,true)
       c.fill()
       c.closePath()
     }
 
     c.fillStyle = "#FFFF87"
-    for (i = 0; i < this.s.length; i++) {
+    for (i = 0; i < cfg.s.length; i++) {
       // Change position according to velocity
-      this.s[i].x += this.s[i].vx
-      this.s[i].y += this.s[i].vy
+      cfg.s[i].x += cfg.s[i].vx | 0
+      cfg.s[i].y += cfg.s[i].vy | 0
       // Draw New Sprite position
       c.beginPath()
-      c.arc(this.s[i].y, this.s[i].x, 10,0, Math.PI*2,true)
+      c.arc(cfg.s[i].y, cfg.s[i].x, 10,0, Math.PI*2,true)
       c.fill()
       c.closePath()
       // Update velocity
-      row = this.s[i].x/xlen | 0
-      col = this.s[i].y/ylen | 0
+      row = cfg.s[i].x/xlen | 0
+      col = cfg.s[i].y/ylen | 0
       // E = -gradPotential
       Ex = -(f[row + 1][col] - f[row][col])
       Ey = -(f[row][col + 1] - f[row][col])
       // Coulumbs law
-      r = Math.sqrt( (this.s[i].x - xpix)*(this.s[i].x - xpix) + (this.s[i].y - ypix)*(this.s[i].y - ypix) )
-      Fx = (this.s[i].x - xpix) * this.q1 * this.q2 / r
-      Fy = (this.s[i].y - ypix) * this.q1 * this.q2 / r
-      this.s[i].vx +=  (q1*Ex + Fx) / this.m
-      this.s[i].vy += (q1*Ey + Fy) / this.m
+      r = Math.sqrt( (cfg.s[i].x - xpix)*(cfg.s[i].x - xpix) + (cfg.s[i].y - ypix)*(cfg.s[i].y - ypix) )
+      Fx = (cfg.s[i].x - xpix) * cfg.q1 * cfg.q2 / r
+      Fy = (cfg.s[i].y - ypix) * cfg.q1 * cfg.q2 / r
+      console.log(cfg.s[0].y - ypix)
+      cfg.s[i].vx +=  (cfg.q1*Ex + Fx) / cfg.m
+      cfg.s[i].vy += (cfg.q1*Ey + Fy) / cfg.m
     }
   }
 
@@ -316,16 +307,16 @@ jQuery(document).ready(function($) {
       s[i] = {
           x : 0.5*rows*xlen | 0
         , y : 0.5 * cols*ylen | 0
-        , vx : i + 1
-        , vy : (0.5 * i + 1) | 0
+        , vx : Math.random() < 0.5 ? -1 : 1 * Math.random() * 3
+        , vy : Math.random() < 0.5 ? -1 : 1 * Math.random() * 3
       }
     }
     return s
   }
-		  
+
 // SET MODE /////////////////////////////////////////////////////
-		       poissonEqnMode()
-		    
+  poissonEqnMode()
+
 }) // end JQuery
 
 
