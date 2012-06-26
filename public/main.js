@@ -14,15 +14,21 @@ jQuery(document).ready(function($) {
   , adj
   , colorgrad
   , update
-
+  , animate
+  , rows
+  , cols
+  , mag
+  , sprites = []
+  , scale
 
 // ON RESIZE ///////////////////////////////////////
   $(window).resize(function(e) {
-    var rows = Math.floor(window.innerHeight / ylen)
-      , cols = Math.floor(window.innerWidth / xlen)
+    rows = Math.floor(window.innerHeight / xlen)
+    cols = Math.floor(window.innerWidth / ylen)
     field.setResolution(rows, cols)
     canvas.width  = window.innerWidth
     canvas.height = window.innerHeight
+    sprites = buildSprites(5)
   })
 
 // This turns on and off button selected class for animations
@@ -45,8 +51,11 @@ jQuery(document).ready(function($) {
 
 // MODE FUNCTIONS ///////////////////////////////////////////////////
   function waveEqnMode() {
+    scale = 10
+    animate = renderField
     maxval = 40 // +/-
     adj = 40
+    mag = 15
     var colorgrada = buildColorGrad("#000092", 41, -1).reverse()
     var colorgradb = buildColorGrad("#000092", 41, 1)
     colorgradb.shift()
@@ -61,7 +70,7 @@ jQuery(document).ready(function($) {
           x: xpix / window.innerWidth // turn into percentage
         , y: ypix / window.innerHeight // before sending
         })
-      field.addDroplet( (ypix / ylen) | 0 , (xpix / xlen) | 0 , 15)
+      field.addDroplet( (ypix / ylen) | 0 , (xpix / xlen) | 0 , mag)
     })
   } // END WAVEEQNMODE
 
@@ -69,7 +78,10 @@ jQuery(document).ready(function($) {
   function diffusionEqnMode() {
     adj = 0
     maxval = 80
-    , colorgrad = [
+    animate = renderField
+    mag = 30
+    scale = 10
+    colorgrad = [
         "#000092"
       , "#00009E"
       , "#0000AA"
@@ -166,7 +178,7 @@ jQuery(document).ready(function($) {
     setInterval(tracedrops, 50)
 
     function tracedrops() {
-      field.addDroplet( (ypix / ylen) | 0 , (xpix / xlen) | 0 , 15)
+      field.addDroplet( (ypix / ylen) | 0 , (xpix / xlen) | 0 , mag)
       socket.emit('clientDroplet', {
           x: xpix / window.innerWidth
         , y: ypix / window.innerHeight
@@ -174,37 +186,195 @@ jQuery(document).ready(function($) {
     }
   } // END DIFFUSIONEQMODE
 
-// SET MODE //////////////////////////////////////////////////////////
-  diffusionEqnMode()
 
-// Crazy! If any event newDroplet, it acts no matter the mode!
+  function poissonEqnMode() {
+    scale = 26
+    maxval = 80
+    adj = 0
+    colorgrad = [
+        "#000092"
+      , "#00009E"
+      , "#0000AA"
+      , "#0000B6"
+      , "#0000C2"
+      , "#0000CE"
+      , "#0000DB"
+      , "#0000E7"
+      , "#0000F3"
+      , "#0000FF"
+      , "#000CFF"
+      , "#0018FF"
+      , "#0024FF"
+      , "#0031FF"
+      , "#003DFF"
+      , "#0049FF"
+      , "#0055FF"
+      , "#0061FF"
+      , "#006DFF"
+      , "#0079FF"
+      , "#0086FF"
+      , "#0092FF"
+      , "#009EFF"
+      , "#00AAFF"
+      , "#00B6FF"
+      , "#00C2FF"
+      , "#00CEFF"
+      , "#00DBFF"
+      , "#00E7FF"
+      , "#00F3FF"
+      , "#00FFFF"
+      , "#0CFFF3"
+      , "#18FFE7"
+      , "#24FFDB"
+      , "#31FFCE"
+      , "#3DFFC2"
+      , "#49FFB6"
+      , "#55FFAA"
+      , "#61FF9E"
+      , "#6DFF92"
+      , "#79FF86"
+      , "#86FF79"
+      , "#92FF6D"
+      , "#9EFF61"
+      , "#AAFF55"
+      , "#B6FF49"
+      , "#C2FF3D"
+      , "#CEFF31"
+      , "#DBFF24"
+      , "#E7FF18"
+      , "#F3FF0C"
+      , "#FFFF00"
+      , "#FFF300"
+      , "#FFE700"
+      , "#FFDB00"
+      , "#FFCE00"
+      , "#FFC200"
+      , "#FFB600"
+      , "#FFAA00"
+      , "#FF9E00"
+      , "#FF9200"
+      , "#FF8600"
+      , "#FF7900"
+      , "#FF6D00"
+      , "#FF6100"
+      , "#FF5500"
+      , "#FF4900"
+      , "#FF3D00"
+      , "#FF3100"
+      , "#FF2400"
+      , "#FF1800"
+      , "#FF0C00"
+      , "#FF0000"
+      , "#F30000"
+      , "#E70000"
+      , "#DB0000"
+      , "#CE0000"
+      , "#C20000"
+      , "#B60000"
+      , "#AA0000"
+      , "#9E0000"
+      ]
+
+    update = field.poissonUpdate
+    $(window).trigger('resize')
+    animate = renderSprites
+
+    // Click Binding //////////////////////////////////////////
+    $('html').dblclick(function(evt) {
+        var xpix = evt.pageX
+          , ypix = evt.pageY
+      field.addSource( (ypix / ylen) | 0 , (xpix / xlen) | 0 )
+    })
+
+
+  } // END PoissonEqnMode
+
+// SET MODE //////////////////////////////////////////////////////////
+  poissonEqnMode()
+
+// If any event newDroplet, it acts no matter the mode!
   socket.on('newDroplet', function(d) {
       var ypix = Math.round( d.y * window.innerHeight ) //recover from percentage
         , xpix = Math.round( d.x * window.innerWidth ) // to this user resolution
-      field.addDroplet( (ypix / ylen) | 0, (xpix / xlen) | 0 , 15)
+      field.addDroplet( (ypix / ylen) | 0, (xpix / xlen) | 0 , mag)
     })
 
 
   // Draw Canvas /////////////////////////////////////////////////////////////////
-  function renderer () {
+  function renderField () {
     var row, col, ind
       , f = update()
-      , rows = field.getHeight()
-      , cols = field.getWidth()
     for (row = 0; row < rows; ++row) {
       for (col = 0; col < cols; ++col) {
-        ind = f[row][col] * 10 | 0 // floor if > 0, ceil if < 0
+        ind = f[row][col] * scale | 0 // floor if > 0, ceil if < 0
         if (Math.abs(ind) > maxval) {
           ind = maxval * (ind < 0 ? -1 : 1)
         }
         c.fillStyle = colorgrad[ind += adj] // start ind at index 0
-        c.fillRect(col*xlen, row*ylen, xlen, ylen)
+        c.fillRect(col*ylen, row*xlen, ylen, xlen)
       }
     }
   }
 
+  function renderSprites () {
+  // Note F = ma & F = qE
+  // so we have field qE = ma and effect of other charges F = kq1q2(r1-r2)/r^2
+  // q1E + k*q1*q2/r^2 = ma
+  // So velocity change due to electric Field and other charges is:
+  // (q1E + k*q1*q2/r^2)/m = dV/dt
+  // q1/m * (E + k*q2/r^2) = dV/dt
+  // Where E = -grad(Potential)
+  // or E = -(X[i+1][j] - X[i][j])x -(X[i][j+1] - X[i][j])y
+
+    var i
+      , row
+      , col
+      , f = update()
+
+    // FIll OVER PREV SPRITES
+    c.fillStyle = "#000092"
+    for (i = 0; i < sprites.length; i++) {
+      c.beginPath()
+      c.arc(sprites[i].y, sprites[i].x, 11,0, Math.PI*2,true)
+      c.fill()
+      c.closePath()
+    }
+
+    c.fillStyle = "#FFFF87"
+    for (i = 0; i < sprites.length; i++) {
+      // Change position according to velocity
+      sprites[i].x += sprites[i].vx
+      sprites[i].y += sprites[i].vy
+      // Draw New Sprite position
+      c.beginPath()
+      c.arc(sprites[i].y, sprites[i].x, 10,0, Math.PI*2,true)
+      c.fill()
+      c.closePath()
+      // Update velocity
+      row = sprites[i].x/xlen | 0
+      col = sprites[i].y/ylen | 0
+      // Its a -= since E = -gradPotential
+      sprites[i].vx += -q1*(f[row + 1][col] - f[row][col]) +
+      sprites[i].vy += -q1*(f[row][col + 1] - f[row][col])
+    }
+  }
+  function buildSprites (n) {
+    var i, s = []
+    for (i = 0; i < n; i++) {
+      s[i] = {
+          x : 0.5*rows*xlen | 0
+        , y : 0.5 * cols*ylen | 0
+        , vx : i + 1
+        , vy : (0.5 * i + 1) | 0
+      }
+    }
+    return s
+  }
+
+
+
 // LOOP WITH RENDER FUNC
-  setInterval(renderer, 40)
+  setInterval(animate, 50)
 
 }) // end JQuery
 

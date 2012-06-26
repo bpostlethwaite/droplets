@@ -9,10 +9,13 @@ function fieldgen() {
     , dx = 1
     , gamma = 0.02 // wave decay factor
     , vel = 2       // wave velocity
-    , alpha = 0.5     // diffusion paramter
+    , alpha = 1     // diffusion paramter
     , u             // main data array
     , un            // next time step data array
     , up            // previous time step data array
+    , uu            // poisson data array
+    , si = []       // poisson sources x dim
+    , sj = []       // poisson sources y dim
     , width
     , height
     , coeffs = [   // 2d laplace operator
@@ -28,10 +31,10 @@ function fieldgen() {
     , [1/256,  4/256,  6/256,  4/256, 1/256]
   ]
 
-  var c1 = 2 - gamma * dt
-  var c2 = gamma * dt - 1
-  var c3 = (dt*dt * vel*vel) / (dx*dx)
-  var c4 = alpha * dt / (dx * dx)
+  , c1 = 2 - gamma * dt
+  , c2 = gamma * dt - 1
+  , c3 = (dt*dt * vel*vel) / (dx*dx)
+  , c4 = alpha * dt / (dx * dx)
 
 
   function waveUpdate () {
@@ -49,7 +52,7 @@ function fieldgen() {
   }
 
   function diffusionUpdate () {
-    // Solves the wave equation PDE
+    // Solves the diffusion equation PDE
     // using convolution.
     var row, col
     var dum = conv2(u, coeffs)
@@ -61,20 +64,24 @@ function fieldgen() {
     return u
   }
 
-  function addDroplet (row, col, mag) {
-    // adds a new gaussian droplet to u
-    // at specified coordinates.
-    // (For now just adds a point source)
-    var i, j
-    for ( i = -2; i <= 2; i++ ) {
-      for ( j = -2; j <= 2; j++ ) {
-        if( row + i >= 0 && col + j >= 0 &&
-            row + i < height && col + j < width) {
-          u[row + i][col + j] += mag * gauss[i + 2][j + 2]
+function poissonUpdate () {
+    // Solves the Poisson equation PDE
+    // using Successive Overrelaxation (SOR) - Gauss Seidel Method
+    var row, col, i
+    for (row = 1; row < (height - 1); ++row) {
+      for (col = 1; col < (width - 1); ++col) {
+        uu[row][col] = (uu[row-1][col] + uu[row+1][col] +
+          uu[row][col-1] + uu[row][col+1]) / 4
+        for (i = 0; i < si.length; i++) {
+          if (row === si[i] && col === sj[i]) {
+            uu[row][col] = 0
+          }
         }
       }
     }
+    return uu
   }
+
 
   function conv2(image, kernel) {
     // iterates over image, then over kernel and
@@ -102,6 +109,26 @@ function fieldgen() {
     return out
   }
 
+  function addDroplet (row, col, mag) {
+    // adds a new gaussian droplet to u
+    // at specified coordinates.
+    // (For now just adds a point source)
+    var i, j
+    for ( i = -2; i <= 2; i++ ) {
+      for ( j = -2; j <= 2; j++ ) {
+        if( row + i >= 0 && col + j >= 0 &&
+            row + i < height && col + j < width) {
+          u[row + i][col + j] += mag * gauss[i + 2][j + 2]
+        }
+      }
+    }
+  }
+
+  function addSource (row, col) {
+    si.push(row)
+    sj.push(col)
+  }
+
   Array.matrix = function (m , n, initial) {
     // Array extender function adds capability
     // of initializing 2D matrices of mxn size
@@ -120,10 +147,31 @@ function fieldgen() {
   function reset() {
     // function matches the matrix calculation sizes to
     // res size by init'ing new matrices.
+    // Also sets up Poisson Default Array, and default source
     u = Array.matrix(height, width, 0)
-
     up = Array.matrix(height, width, 0)
     un = Array.matrix(height, width, 0)
+    uu = Array.matrix(height,width, 0)
+    initPoisson()
+  }
+
+  function initPoisson() {
+    // Initializes 1's at border, so with the gravity wells
+    // inside will make a parabolic potential field.
+    // For speed when a new gravity well is added it solves SOR using multigrid
+    // approach.
+    var i , j
+    si[0] = 0.5*height | 0
+    sj[0] =  0.5*width | 0
+    for (i = 0; i < height; i += 1) {
+      for (j = 0; j < width; j += 1) {
+        uu[i][j] = 3 - 3 / Math.sqrt((Math.sqrt( (i - si[0])*(i - si[0]) + (j - sj[0])*(j - sj[0])) ))
+        if (i === 0 || i === (height - 1) || (j === 0) || (j === (width - 1) )) {
+          uu[i][j] = 3
+        }
+      }
+    }
+    uu[si[0]][sj[0]] = 0
   }
 
   function setResolution (hRes, wRes) {
@@ -151,8 +199,11 @@ function fieldgen() {
   that.setResolution = setResolution
   that.waveUpdate = waveUpdate
   that.diffusionUpdate = diffusionUpdate
+  that.poissonUpdate = poissonUpdate
   that.getHeight = getHeight
   that.getWidth = getWidth
   that.addDroplet = addDroplet
+  that.addSource = addSource
+
   return that
 }

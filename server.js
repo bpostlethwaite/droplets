@@ -8,7 +8,7 @@ var server = require("node-static")
   , fs = require('fs')
 
 // Set logging level
-io.set('log level', 3)
+io.set('log level', 1)
 // Listen on port
 var port = process.env.PORT
 //var port = 8081
