@@ -163,6 +163,7 @@ dd {
 /**** CANVAS ***************************************/
 #canvas {
   position: absolute;
+  background: #000092;
   top: 0;
   left: 0;
   z-index: 0;
