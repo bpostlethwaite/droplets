@@ -3,8 +3,9 @@
 "use strict";
 
 jQuery(document).ready(function($) {
-  var socket = io.connect("http://droplets.benjp.c9.io")
+  //var socket = io.connect("http://droplets.benjp.c9.io")
   //  var socket = io.connect("wss://droplets.jit.su")
+  var socket = io.connect("http://192.168.1.113:8081")
     , colorgrad = [
         "#000092"
       , "#00009E"
@@ -106,7 +107,7 @@ jQuery(document).ready(function($) {
     field.setResolution(rows, cols)
     canvas.width  = window.innerWidth
     canvas.height = window.innerHeight
-    cfg.s = buildSprites(4)
+    cfg.s = buildSprites(10)
   })
 
 // This turns on and off button selected class for animations
@@ -137,8 +138,8 @@ jQuery(document).ready(function($) {
 
     cfg.mag = 15
     // Bind Click //////////////////////////////////////////
-    $('html').unbind('click') // get rid of previous bindings
-    $('html').click(function(evt) {
+    $(canvas).unbind() // get rid of previous bindings
+    canvas.addEventListener("click",function(evt) {
         var xp = evt.pageX
           , yp = evt.pageY
       socket.emit('clientDroplet',{
@@ -165,11 +166,10 @@ jQuery(document).ready(function($) {
     xpix = 0.5*Math.round(window.innerWidth)
     ypix= 0.5*Math.round(window.innerHeight)
     // Click Binding //////////////////////////////////////////
-    $('html').unbind('click') // get rid of previous bindings
-
-    $("html").mousemove(function(e){
-      xpix = e.pageX
-      ypix = e.pageY
+    $(canvas).unbind()
+    $(canvas).mousemove(function(e){
+      xpix = e.pageY
+      ypix = e.pageX
     })
 
     setInterval(tracedrops, 50)
@@ -202,16 +202,16 @@ jQuery(document).ready(function($) {
     xpix = 0.5*Math.round(window.innerWidth)
     ypix= 0.5*Math.round(window.innerHeight)
     // Click Binding //////////////////////////////////////////
-    $('html').unbind('click') // get rid of previous bindings
-    $('html').dblclick(function(evt) {
+    $(canvas).unbind() // get rid of previous bindings
+    $(canvas).dblclick(function(evt) {
         var xpix = evt.pageX
           , ypix = evt.pageY
       field.addSource( (ypix / ylen) | 0 , (xpix / xlen) | 0 )
     })
 
-    $('html').mousemove(function(e){
-      xpix = e.pageX
-      ypix = e.pageY
+    $(canvas).mousemove(function(e){
+      xpix = e.pageY // yes this is confusing but I like my x dir up and down = height
+      ypix = e.pageX
     })
 
     // Set renderField configurations
@@ -221,9 +221,9 @@ jQuery(document).ready(function($) {
     cfg.adj = 0
     cfg.cg = colorgrad
     // set renderSprites config
-    cfg.q1 = 1
-    cfg.q2 = 0.1
-    cfg.m = 1
+    cfg.m = 3
+    cfg.k = 1
+    cfg.dt = 0.1
 
     // Start Animation
     setInterval(renderSprites, 50)
@@ -263,7 +263,8 @@ jQuery(document).ready(function($) {
   // q1/m * (E + k*q2(r2-r1)/r^2) = dV/dt
   // Where E = -grad(Potential)
   // or E = -(X[i+1][j] - X[i][j])x -(X[i][j+1] - X[i][j])y
-    var i, row, col, Ex, Ey, Fx, Fy, r
+  // q1 and q1 have been set as 1
+    var i, row, col, Ex, Ey, Fx, Fy, r, vx ,vy
       , f = cfg.update()
 
     // FIll OVER PREV SPRITES
@@ -278,8 +279,12 @@ jQuery(document).ready(function($) {
     c.fillStyle = "#FFFF87"
     for (i = 0; i < cfg.s.length; i++) {
       // Change position according to velocity
-      cfg.s[i].x += cfg.s[i].vx | 0
-      cfg.s[i].y += cfg.s[i].vy | 0
+      cfg.s[i].x = Math.round(cfg.s[i].x + cfg.s[i].vx)
+      cfg.s[i].y = Math.round(cfg.s[i].y + cfg.s[i].vy)
+      if (cfg.s[i].x <= 1 || cfg.s[i].x >= canvas.height -xlen || cfg.s[i].y <= 1 || cfg.s[i].y >= canvas.width - ylen) {
+        cfg.s.splice(i,1)
+        continue
+      }
       // Draw New Sprite position
       c.beginPath()
       c.arc(cfg.s[i].y, cfg.s[i].x, 10,0, Math.PI*2,true)
@@ -293,12 +298,14 @@ jQuery(document).ready(function($) {
       Ey = -(f[row][col + 1] - f[row][col])
       // Coulumbs law
       r = Math.sqrt( (cfg.s[i].x - xpix)*(cfg.s[i].x - xpix) + (cfg.s[i].y - ypix)*(cfg.s[i].y - ypix) )
-      Fx = (cfg.s[i].x - xpix) * cfg.q1 * cfg.q2 / r
-      Fy = (cfg.s[i].y - ypix) * cfg.q1 * cfg.q2 / r
-      console.log(cfg.s[0].y - ypix)
-      cfg.s[i].vx +=  (cfg.q1*Ex + Fx) / cfg.m
-      cfg.s[i].vy += (cfg.q1*Ey + Fy) / cfg.m
+      Fx = (r > 75) ? 0 : cfg.k*(cfg.s[i].x - xpix) / r
+      Fy = (r > 75) ? 0 : cfg.k*(cfg.s[i].y - ypix) / r
+      vx = (Ex + Fx) / cfg.m
+      vy = (Ey + Fy) / cfg.m
+      cfg.s[i].vx +=  vx/cfg.dt
+      cfg.s[i].vy += vy/cfg.dt
     }
+
   }
 
   function buildSprites (n) {
@@ -316,7 +323,7 @@ jQuery(document).ready(function($) {
 
 // SET MODE /////////////////////////////////////////////////////
   poissonEqnMode()
-
+  //waveEqnMode()
 }) // end JQuery
 
 
