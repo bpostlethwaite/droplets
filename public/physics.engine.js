@@ -161,17 +161,30 @@ function poissonUpdate () {
     // For speed when a new gravity well is added it solves SOR using multigrid
     // approach.
     var i , j
-    si[0] = 0.5*height | 0
+    si[0] = 0.5*height | 0;
     sj[0] =  0.5*width | 0
+    si[1] = si[0] - 3
+    sj[1] = sj[0] - 3
+    si[2] = si[0] + 3
+    sj[2] = sj[0] - 3
+    si[3] = si[0] - 3
+    sj[3] = sj[0] + 3
+    si[4] = si[0] + 3
+    sj[4] = sj[0] + 3
+
     for (i = 0; i < height; i += 1) {
       for (j = 0; j < width; j += 1) {
-        uu[i][j] = 3 - 3 / Math.sqrt((Math.sqrt( (i - si[0])*(i - si[0]) + (j - sj[0])*(j - sj[0])) ))
+        uu[i][j] = 10 - 10 / Math.sqrt((Math.sqrt( (i - si[0])*(i - si[0]) + (j - sj[0])*(j - sj[0])) ))
         if (i === 0 || i === (height - 1) || (j === 0) || (j === (width - 1) )) {
-          uu[i][j] = 3
+          uu[i][j] = 10
         }
       }
     }
     uu[si[0]][sj[0]] = 0
+    uu[si[1]][sj[1]] = 0
+    uu[si[2]][sj[2]] = 0
+    uu[si[3]][sj[3]] = 0
+    uu[si[4]][sj[4]] = 0
   }
 
   function setResolution (hRes, wRes) {

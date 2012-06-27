@@ -1,0 +1,21 @@
+rows = x
+cols = y
+
+hieght = rows = x = i = xlen
+width = cols = y = j = ylen
+
+addDroplets( row, col )
+fillREct (y ,x , width, height)
+clearRect(y,x, width, height)
+
+5
+4
+3
+2   - (1 - 2) = positive
+1
+0
+1
+2
+3  - (3 - 2) = negative
+4
+5
