@@ -3,9 +3,9 @@
 "use strict";
 
 jQuery(document).ready(function($) {
-  //var socket = io.connect("http://droplets.benjp.c9.io")
+  var socket = io.connect("http://droplets.benjp.c9.io")
   //  var socket = io.connect("wss://droplets.jit.su")
-  var socket = io.connect("http://192.168.1.113:8081")
+  //var socket = io.connect("http://192.168.1.113:8081")
     , colorgrad = [
         "#000092"
       , "#00009E"
