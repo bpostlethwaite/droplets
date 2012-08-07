@@ -11,7 +11,6 @@ var server = require("node-static")
 io.set('log level', 1)
 // Listen on port
 var port = 80
-
 app.listen(port)
 console.log("Static server listening on " + port)
 //
@@ -90,9 +89,6 @@ readAndConnect(files, function (data) {
     //
     socket.on('clientDroplet', function(data) {
       socket.broadcast.emit('newDroplet', data)
-      console.log(data.y, data.x)
     })
   })
 }) // end readContent call
-
-
