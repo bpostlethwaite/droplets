@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+
+
+</head>
+
+<body>
+
+  <canvas id="canvas" width="1800" height="400"></canvas>
+
+  <script>
+    var canvas = document.getElementById('canvas')
+    , c = canvas.getContext('2d')
+
+    function colorLuminance(hex, lum) {
+      // validate hex string
+      hex = String(hex).replace(/[^0-9a-f]/gi, '')
+      if (hex.length < 6) {
+        hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2]
+      }
+      lum = lum || 0
+      // convert to decimal and change luminosity
+      var rgb = "#", c, i
+      for (i = 0; i < 3; i++) {
+        c = parseInt(hex.substr(i*2,2), 16)
+        c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16)
+        rgb += ("00"+c).substr(c.length)
+      }
+      return rgb
+    }
+
+    function buildColorGrad(baseShade, numElem, lum) {
+      // Build the gradient variable from a starting darkest shade.
+      // Goes up in lum/numElement increments, where lum
+      // is percent / 100 (1 = 100% increase)
+      var i
+      , nc = []
+      , inc = lum/numElem
+      for (i = 0; i < numElem; ++i) {
+        nc[i] = colorLuminance(baseShade, i*inc)
+      }
+      return nc
+    }
+
+    // OLD WAVE COLOR #05050D
+    var colorgradIa = buildColorGrad("#000092", 41, -1).reverse()
+    var colorgradIb = buildColorGrad("#000092", 41, 1)
+    colorgradIb.shift()
+    var colorgradI = colorgradIa.concat(colorgradIb)
+    var colorgradII = [
+        "#000092"
+      , "#00009E"
+      , "#0000AA"
+      , "#0000B6"
+      , "#0000C2"
+      , "#0000CE"
+      , "#0000DB"
+      , "#0000E7"
+      , "#0000F3"
+      , "#0000FF"
+      , "#000CFF"
+      , "#0018FF"
+      , "#0024FF"
+      , "#0031FF"
+      , "#003DFF"
+      , "#0049FF"
+      , "#0055FF"
+      , "#0061FF"
+      , "#006DFF"
+      , "#0079FF"
+      , "#0086FF"
+      , "#0092FF"
+      , "#009EFF"
+      , "#00AAFF"
+      , "#00B6FF"
+      , "#00C2FF"
+      , "#00CEFF"
+      , "#00DBFF"
+      , "#00E7FF"
+      , "#00F3FF"
+      , "#00FFFF"
+      , "#0CFFF3"
+      , "#18FFE7"
+      , "#24FFDB"
+      , "#31FFCE"
+      , "#3DFFC2"
+      , "#49FFB6"
+      , "#55FFAA"
+      , "#61FF9E"
+      , "#6DFF92"
+      , "#79FF86"
+      , "#86FF79"
+      , "#92FF6D"
+      , "#9EFF61"
+      , "#AAFF55"
+      , "#B6FF49"
+      , "#C2FF3D"
+      , "#CEFF31"
+      , "#DBFF24"
+      , "#E7FF18"
+      , "#F3FF0C"
+      , "#FFFF00"
+      , "#FFF300"
+      , "#FFE700"
+      , "#FFDB00"
+      , "#FFCE00"
+      , "#FFC200"
+      , "#FFB600"
+      , "#FFAA00"
+      , "#FF9E00"
+      , "#FF9200"
+      , "#FF8600"
+      , "#FF7900"
+      , "#FF6D00"
+      , "#FF6100"
+      , "#FF5500"
+      , "#FF4900"
+      , "#FF3D00"
+      , "#FF3100"
+      , "#FF2400"
+      , "#FF1800"
+      , "#FF0C00"
+      , "#FF0000"
+      , "#F30000"
+      , "#E70000"
+      , "#DB0000"
+      , "#CE0000"
+      , "#C20000"
+      , "#B60000"
+      , "#AA0000"
+      , "#9E0000"
+      ]
+
+    var i
+    for (i = 0; i < colorgradI.length; ++i) {
+      c.fillStyle = colorgradI[i] // start ind at index 0
+      c.fillRect(i*10, 1, 10, 200)
+      c.fillStyle = colorgradII[i] // start ind at index 0
+      c.fillRect(i*10, 201, 10, 200)
+
+    }
+
+  </script>
+
+  </body>
+  </html>
