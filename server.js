@@ -72,7 +72,7 @@ function readAndConnect(items, cb) {
   } // end parseMarkdown
 } // end ReadContent
 
-var files = ["README.md"]
+var files = ["README.md","CV.md"]
 readAndConnect(files, function (data) {
   //
   // SOCKETS!
