@@ -6,10 +6,6 @@ The backend computations handling the wave-field physics are written in javascri
 _The website runs best on Chrome._
 
 ### Todo
-1. Turn javascript function wavefield into a node.js module and publish to NPM
-2. Test CSS3 animations with IE
-3. xlen and ylen resolution sizes should be dependent on overall screen size. Smaller screen sizes can computationally afford better resolutions.
-
-### Issues
-1. Strange Firefox bug: content does not fade in with delay on second access. I suspect the `opacity` property is not being reset to `0` when unselected.
-
+1. Test CSS3 animations with IE
+2. xlen and ylen resolution sizes should be dependent on overall screen size. Smaller screen sizes can computationally afford better resolutions.
+3. Finish coding and implementing the Poisson Equation (gravity and electrostatics)
