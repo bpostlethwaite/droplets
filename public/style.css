@@ -1,4 +1,5 @@
 html, body {
+    position: absolute;
     background: #000092; /* Use middle color of colorgrad */
     width:  100%;
     height: 100%;
