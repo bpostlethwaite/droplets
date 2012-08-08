@@ -1,4 +1,5 @@
 html, body {
+    position: absolute;
     background: #000092; /* Use middle color of colorgrad */
     width:  100%;
     height: 100%;
@@ -44,7 +45,7 @@ dd {
     margin: 40px 0 0 40px;
     float: left;
     width: 180px;
-    height: 400px;
+    height: 440px;
     -ms-border-radius: 15px;
     -moz-border-radius: 15px;
     -webkit-border-radius: 15px;
@@ -89,7 +90,52 @@ dd {
     color:#E3DD29;
 }
 
+/**** MODE BUTTONS *********************************/
 
+.mode {
+    float:left !important;
+    -ms-box-shadow:0 1px 0 0 #BF8B11;
+    -webkit-box-shadow:0 1px 0 0 #BF8B11;
+    -moz-box-shadow:0 1px 0 0 #BF8B11;
+    box-shadow:0 1px 0 0 #BF8B11;
+    background-color:transparent;
+    width:50px;
+    -ms-border-radius:6px;
+    -webkit-border-radius:6px;
+    -moz-border-radius:6px;
+    border-radius:6px;
+    border:1px solid #DBA118;
+    margin: 0px 3px 3px 0px;
+    padding: 3px 0;
+    text-decoration:none;
+}
+.mode:hover {
+    -ms-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
+    -moz-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
+    -webkit-box-shadow:0 0 10px 2px rgba(176, 171, 14,0.5);
+    box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
+    border:1px solid #E3DD29;
+}
+.mode:hover > h2 {
+    color:#E3DD29;
+}
+.mode.selectedII {
+    -ms-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
+    -moz-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
+    -webkit-box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
+    box-shadow:0 0 5px 1px rgba(176, 171, 14,0.5);
+    border:1px solid #E3DD29;
+}
+.mode.selectedII > h2 {
+    color:#E3DD29;
+}
+/**** MODE MESSAGE *********************************/
+.modeinfo {
+    display: none;
+}
+.modeinfo.selectedII {
+    display: inline-block;
+}
 /**** CONNECTORS ***********************************/
 .connector {
     float: left;
@@ -130,7 +176,7 @@ dd {
     float: left;
     margin: 40px 0 0 0;
     width: 0;
-    min-height: 400px;
+    min-height: 440px;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 0 0 !important;
@@ -152,7 +198,7 @@ dd {
     padding: 10px 21px;
 }
 .content.selected {
-    min-hieght: 400px;
+    min-hieght: 440px;
 
     -webkit-animation: appear 1s 2s normal both;
     -moz-animation:appear 1s 2s normal both;
