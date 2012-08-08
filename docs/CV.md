@@ -5,18 +5,15 @@
 
 ### Education
 
-*Geophysics, M.Sc.*
+#### Geophysics, M.Sc.
 
-Fall 2010 - present
-University of British Columbia, Vancouver Canada.
+    Fall 2010 - present
+    University of British Columbia, Vancouver Canada.
 
-*Geophysics, B.Sc.*
+#### Geophysics, B.Sc.
 
-Fall 2006 - Fall 2010
-
-University of British Columbia, Vancouver Canada.
-
-*WHIMIS certifications*
+    Fall 2006 - Fall 2010
+    University of British Columbia, Vancouver Canada.
 
 ### Proficiency
 
@@ -24,9 +21,7 @@ I have experience managing hard-rock and soft-rock geophysical datasets, handlin
 
 ### Experience
 
-#### Aurora Geosciences
-
-##### Crew Chief - April 2011 to September 2012 - Summer work
+#### Aurora Geosciences - April 2011 to September 2012 - Summer work
 
 Crew chief with [Aurora Geoscience](http://www.aurorageosciences.com) running magnetic, VLF and ELF surveys as well as working with an HLEM crew.
 
@@ -34,11 +29,9 @@ Crew chief with [Aurora Geoscience](http://www.aurorageosciences.com) running ma
  * Tested prototype ELF geophysical equipment and established a method for visualizing and working with output data.
  * Identified areas that would be amenible to automation and wrote Perl and Python programs/scripts to speed up and reduce error in geophysical processing and survey design.
 
-#### Active Turf Irrigation
+#### Active Turf Irrigation - March 2008 to September 2010
 
-##### Installation and Maintenance Serviceman - March 2008 to September 2010
-
-I was an installer and serviceman with [Active Turf Irrigation](http://activeturfirrigation.com) working on larger industrial projects or handling maintainance contracts with a service van.
+I was an installation and maintenance serviceman with [Active Turf Irrigation](http://activeturfirrigation.com) working on larger industrial projects or handling maintainance contracts with a service van.
 
  * Worked with larger crews in fast paced environment.
  * Worked with, and managed expectations of, customers in planning and job roll out.
