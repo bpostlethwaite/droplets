@@ -13,6 +13,12 @@ io.set('log level', 1)
 var port = 80
 app.listen(port)
 console.log("Static server listening on " + port)
+
+// Setup marked
+marked.setOptions({
+  gfm: true
+})
+
 //
 // BORING SERVER
 //
