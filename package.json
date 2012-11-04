@@ -1,8 +1,8 @@
 {
   "author": "Ben Postlethwaite <post.ben.here@gmail.com>",
   "name": "droplets",
-  "description": "javascript & node wavefield generator with html display",
-  "version": "0.1.6-1",
+  "description": "Personal website with nodejs wavefield generator and interactive html display",
+  "version": "0.4.1-1",
   "homepage": "https://github.com/bpostlethwaite/droplets",
   "repository": {
     "type": "git",
@@ -12,12 +12,14 @@
   "dependencies": {
     "node-static": ">= 0.5.0",
     "socket.io": ">= 0.9",
-    "marked": "0.2.x"
+    "marked": ">=0.2.x",
+    "pde-engine": ">=0.2",
+    "printarray": ">=0.1"
   },
   "devDependencies": {},
   "optionalDependencies": {},
   "engines": {
-    "node": "0.6.x"
+    "node": ">=0.6"
   },
   "subdomain": "droplets",
   "domains": [

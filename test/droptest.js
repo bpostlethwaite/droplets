@@ -5,7 +5,7 @@ var field = require("../public/wavefield.gen.js")()
 var printarr = require("../printArray.js")
 
 
-field.setResolution(15, 10)
+field.setResolution(200, 200)
 var i
   , start = Date.now()
 for (i = 0; i < 2; i++) {

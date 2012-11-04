@@ -11,9 +11,14 @@ var server = require("node-static")
 io.set('log level', 1)
 // Listen on port
 var port = 80
-
 app.listen(port)
 console.log("Static server listening on " + port)
+
+// Setup marked
+marked.setOptions({
+  gfm: true
+})
+
 //
 // BORING SERVER
 //
@@ -72,7 +77,7 @@ function readAndConnect(items, cb) {
   } // end parseMarkdown
 } // end ReadContent
 
-var files = ["README.md"]
+var files = ["README.md","CV.md"]
 readAndConnect(files, function (data) {
   //
   // SOCKETS!
@@ -90,9 +95,6 @@ readAndConnect(files, function (data) {
     //
     socket.on('clientDroplet', function(data) {
       socket.broadcast.emit('newDroplet', data)
-      console.log(data.y, data.x)
     })
   })
 }) // end readContent call
-
-
