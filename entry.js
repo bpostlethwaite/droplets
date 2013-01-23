@@ -3,8 +3,7 @@
 
 var engine = require('pde-engine')
   , poissonEngine = require('./poissonSolver.js')
-//  , io = require('socket.io.js')
-
+  , cg = require('colorgrad')()
 
 $(document).ready(function() {
   //var socket = io.connect("wss://droplets.jit.su")
@@ -113,9 +112,11 @@ $(document).ready(function() {
     , eqn: "wave"
     })
   
-    var colorgrada = buildColorGrad("#000092", 41, -1).reverse()
-      , colorgradb = buildColorGrad("#000092", 41, 1)
-    colorgradb.shift()
+    var ca = cg.colorgrad("#000092", {lum: -1, nshades:41}).reverse()
+    var cb = cg.colorgrad("#000092", {lum: 1, nshades:41})
+    cb.shift()
+    field.cg = ca.concat(cb)
+
     field.mag = 15
 
     // Bind Click Events /////////////////////////////////////
@@ -132,7 +133,7 @@ $(document).ready(function() {
     field.scale = 10
     field.maxval = 40 // +/-
     field.adj = 40
-    field.cg = colorgrada.concat(colorgradb)
+    
     // Start Animation
     intID[0] = setInterval(renderField, 30)
 
