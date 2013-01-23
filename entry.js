@@ -1,5 +1,3 @@
-/*jshint asi: true*/
-/*jshint laxcomma: true*/
 "use strict";
 
 
@@ -97,23 +95,24 @@ $(document).ready(function() {
 
   // Function to clear previous bindings and interval
   // timers from previously selected modes
-  function clearMode() {
+  function clearScreen() {
     var i
     $(canvas).unbind("mousemove")
     $(canvas).unbind("click")
     for (i = 0; i < intID.length; i++) {
       clearInterval(intID[i])
     }
+    resetScreen()
   }
 
   function waveEqnMode() {
-    clearMode()
+    clearScreen()
     field = engine( {
       dt: 0.1
     , gamma: 0.02
     , eqn: "wave"
     })
-    resetScreen() // Call reset which inits field to window size
+  
     var colorgrada = buildColorGrad("#000092", 41, -1).reverse()
       , colorgradb = buildColorGrad("#000092", 41, 1)
     colorgradb.shift()
@@ -141,13 +140,13 @@ $(document).ready(function() {
 
 
   function diffusionEqnMode() {
-    clearMode()
+    clearScreen()
     field = engine( {
       dt: 0.1
     , eqn: "diffusion"
     , alpha: 0.5
     })
-    resetScreen() // Call reset which inits field to window size
+
     field.mag = 30
     // Click Binding //////////////////////////////////////////
     $(canvas).bind("mousemove", function(evt) {
@@ -157,6 +156,7 @@ $(document).ready(function() {
 
     intID[0] = setInterval(tracedrops, 50)
 
+    
     function tracedrops() {
       field.addSource( (ypix / ylen) | 0 , (xpix / xlen) | 0 , field.mag)
       socket.emit('clientDroplet', {
