@@ -331,6 +331,47 @@ exports.extname = function(path) {
   return splitPathRe.exec(path)[3] || '';
 };
 
+exports.relative = function(from, to) {
+  from = exports.resolve(from).substr(1);
+  to = exports.resolve(to).substr(1);
+
+  function trim(arr) {
+    var start = 0;
+    for (; start < arr.length; start++) {
+      if (arr[start] !== '') break;
+    }
+
+    var end = arr.length - 1;
+    for (; end >= 0; end--) {
+      if (arr[end] !== '') break;
+    }
+
+    if (start > end) return [];
+    return arr.slice(start, end - start + 1);
+  }
+
+  var fromParts = trim(from.split('/'));
+  var toParts = trim(to.split('/'));
+
+  var length = Math.min(fromParts.length, toParts.length);
+  var samePartsLength = length;
+  for (var i = 0; i < length; i++) {
+    if (fromParts[i] !== toParts[i]) {
+      samePartsLength = i;
+      break;
+    }
+  }
+
+  var outputParts = [];
+  for (var i = samePartsLength; i < fromParts.length; i++) {
+    outputParts.push('..');
+  }
+
+  outputParts = outputParts.concat(toParts.slice(samePartsLength));
+
+  return outputParts.join('/');
+};
+
 });
 
 require.define("__browserify_process",function(require,module,exports,__dirname,__filename,process,global){var process = module.exports = {};
@@ -343,7 +384,7 @@ process.nextTick = (function () {
     ;
 
     if (canSetImmediate) {
-        return window.setImmediate;
+        return function (f) { return window.setImmediate(f) };
     }
 
     if (canPost) {
@@ -542,7 +583,10 @@ module.exports = function pdeEngine(spec) {
 
 });
 
-require.define("/lib/poissonSolver.js",function(require,module,exports,__dirname,__filename,process,global){/*jshint asi: true*/
+require.define("/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"server.js"}
+});
+
+require.define("/poissonSolver.js",function(require,module,exports,__dirname,__filename,process,global){/*jshint asi: true*/
 /*jshint laxcomma: true*/
 
 exports = module.exports = function poissonSolver() {
@@ -655,7 +699,7 @@ function poissonUpdate () {
 
 });
 
-require.define("/lib/entry.js",function(require,module,exports,__dirname,__filename,process,global){/*jshint asi: true*/
+require.define("/entry.js",function(require,module,exports,__dirname,__filename,process,global){/*jshint asi: true*/
 /*jshint laxcomma: true*/
 "use strict";
 
@@ -666,9 +710,9 @@ var engine = require('pde-engine')
 
 
 $(document).ready(function() {
+  var socket = io.connect("wss://droplets.jit.su")
   //var socket = io.connect("http://droplets.benjp.c9.io")
-  var socket = io.connect("http://192.168.1.149:8081")
-//  var socket = io.connect("wss://droplets.jit.su")
+  //var socket = io.connect("192.168.1.113")
 
   , field = engine()
   , canvas = document.getElementById('canvas')
@@ -680,10 +724,6 @@ $(document).ready(function() {
   , xpix
   , ypix
   , intID = []
-
-  console.log("hello")
-
-
 
 
 // This turns on and off button selected class for animations
@@ -780,7 +820,7 @@ $(document).ready(function() {
     colorgradb.shift()
     field.mag = 15
 
-    // Bind Click //////////////////////////////////////////
+    // Bind Click Events /////////////////////////////////////
     $(canvas).bind("click", function(evt) {
         var xp = evt.pageX
           , yp = evt.pageY
@@ -1095,5 +1135,5 @@ function buildColorGrad(baseShade, numElem, lum) {
 }
 
 });
-require("/lib/entry.js");
+require("/entry.js");
 })();

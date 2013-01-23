@@ -1,3 +1,5 @@
+[![Nodejitsu Deploy Status](http://webhooks.nodejitsu.com/bpostlethwaite/droplets.png)](https://webops.nodejitsu.com#droplets/webhooks)
+
 # Droplets
 A Javascript physics engine and real-time server-client setup project with node.js which evolved into my personal website.
 
