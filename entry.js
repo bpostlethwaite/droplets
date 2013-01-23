@@ -7,9 +7,9 @@ var engine = require('pde-engine')
 
 
 $(document).ready(function() {
-  var socket = io.connect("wss://droplets.jit.su")
+  //var socket = io.connect("wss://droplets.jit.su")
   //var socket = io.connect("http://droplets.benjp.c9.io")
-  //var socket = io.connect("192.168.1.113")
+  var socket = io.connect("192.168.1.113")
 
   , field = engine()
   , canvas = document.getElementById('canvas')
