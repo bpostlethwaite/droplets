@@ -146,25 +146,25 @@ dd {
     padding: 0 0 !important;
 }
 .connector.tog1.selected {
-    margin: 181px 0 0 -80px;
+    margin: 171px 0 0 -80px;
     -moz-animation:move 1s linear forwards;
     -ms-animation:move 1s linear forwards;
     -webkit-animation:move 1s linear forwards;
 }
 .connector.tog2.selected {
-    margin: 215px 0 0 -80px;
+    margin: 206px 0 0 -80px;
     -moz-animation:move 1s linear forwards;
     -ms-animation:move 1s linear forwards;
     -webkit-animation:move 1s linear forwards;
 }
 .connector.tog3.selected {
-    margin: 249px 0 0 -80px;
+    margin: 240px 0 0 -80px;
     -moz-animation:move 1s linear forwards;
     -ms-animation:move 1s linear forwards;
     -webkit-animation:move 1s linear forwards;
 }
 .connector.tog4.selected {
-    margin: 283px 0 0 -80px;
+    margin: 274px 0 0 -80px;
     -moz-animation:move 1s linear forwards;
     -ms-animation:move 1s linear forwards;
     -webkit-animation:move 1s linear forwards;

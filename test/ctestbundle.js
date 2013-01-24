@@ -432,269 +432,64 @@ process.binding = function (name) {
 
 });
 
-require.define("/node_modules/pde-engine/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"pde-engine.js"}
+require.define("/node_modules/colormap/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/pde-engine/pde-engine.js",function(require,module,exports,__dirname,__filename,process,global){/*  pde-engine
- *
- * A PDE solver for the wave and diffusion equations.
- *
- * Ben Postlethwaite 2012
- * benpostlethwaite.ca
- */
+require.define("/node_modules/colormap/index.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
+var cg = require('colorgrad')()
+var at = require('arraytools')()
 
-module.exports = function pdeEngine(spec) {
-  var that = {}
-    , spec = spec || {}
-    , dt = spec.dt || 0.1
-    , dx = spec.dx || 1
-    , gamma = spec.gamma || 0.02   // wave decay factor
-    , vel = spec.vel || 2          // wave velocity
-    , alpha = spec.alpha || 1      // diffusion paramter
-    , eqn = spec.eqn || 'wave'
-    , u                            // main data array
-    , un                           // next time step data array
-    , up                           // previous time step data array
-    , uu                           // poisson data array
-    , si = []                      // poisson sources x dim
-    , sj = []                      // poisson sources y dim
-    , width
-    , height
-    , coeffs = [   // 2d laplace operator
-        0,  1,  0
-      , 1, -4,  1
-      , 0,  1,  0
-    ]
-    , gauss = [
-      1/256,  4/256,  6/256,  4/256, 1/256
-      , 4/256, 16/256, 24/256, 16/256, 4/256
-      , 6/256, 24/256, 36/256, 24/256, 6/256
-      , 4/256, 16/256, 24/256, 16/256, 4/256
-      , 1/256,  4/256,  6/256,  4/256, 1/256
-    ]
+module.exports = function (spec) {
 
-  , c1 = 2 - gamma * dt
-  , c2 = gamma * dt - 1
-  , c3 = (dt*dt * vel*vel) / (dx*dx)
-  , c4 = alpha * dt / (dx * dx)
+  /*
+   * Default Options
+   */
+  if( !at.isObj(spec) )
+    spec = {}
+  spec.colormap = spec.colormap || "jet"
+  spec.nshades = spec.nshades || 72
+  spec.format = spec.format || "hex"
+     
+
+  /*
+   * Supported colormaps
+   */
+  var cmap = {
+    "jet": jet
+  } 
 
 
-  function waveUpdate () {
-    // Solves the wave equation PDE
-    // using convolution.
-    var row, col, ind
-    var dum = conv2(u, coeffs)
-     for (row = 0; row < height; ++row)
-      for (col = 0; col < width; ++col) {
-        ind = row * width + col
-        un[ind] = c1 * u[ind] + c2 * up[ind] + c3 * dum[ind]
-        up[ind] = u[ind] // current becomes old
-        u[ind] = un[ind] // new becomes current
-      }
-    return u
-  }
+  /*
+   * apply map and convert result if needed
+   */
+  var carray = cmap[spec.colormap](spec.nshades)
+  var result = []
+  if (spec.format === "hex") {
+    carray.forEach( function (ar) {
+      result.push( cg.rgb2hex(ar) )
+    })
+  } else result = carray
 
-  function diffusionUpdate () {
-    // Solves the diffusion equation PDE
-    // using convolution.
-    var row, col, ind
-    var dum = conv2(u, coeffs)
-    for (row = 0; row < height; ++row)
-      for (col = 0; col < width; ++col) {
-        ind = row * width + col
-        un[ind] = u[ind] +  c4 * dum[ind]
-        u[ind] = un[ind] // new becomes current
-      }
-    return u
-  }
+  
 
-  function conv2(image, kernel) {
-    // iterates over image, then over kernel and
-    // multiplies the flipped kernel coeffs
-    // with appropriate image values, sums them
-    // then adds into new array entry.
-    var out = new Float64Array( height * width  )
-    var acc = 0
-    , row, col, i, j, k
-    for ( row = 0; row < height; row++ ) {
-      for ( col = 0; col < width; col++ ) {
-        for ( i = -1; i <= 1; i++ ) {
-          for ( j = -1; j <= 1; j++ ) {
-            if( row+i >= 0 && col+j >= 0 &&
-                row+i < height && col+j < width) {
-              k = image[ (row + i) * width + (col + j)]
-              acc += k * kernel[ (1 + i) * 3 + (1 + j)]
-            }
-          }
-        }
-        out[ row * width + col] = acc
-        acc = 0
-      }
-    }
-    return out
-  }
+  /*
+   * colormap functions
+   *
+   */
+  function jet(n) {
+    var divs = [0, 0.125, 0.375, 0.625, 0.875, 1].map(function(x) { return x * n })
+      var divs = divs.map( Math.round )
 
-  function addSource (row, col, mag) {
-    // adds a new gaussian droplet to u
-    // at specified coordinates.
-    // (For now just adds a point source)
-    var i, j
-    for ( i = -2; i <= 2; i++ ) {
-      for ( j = -2; j <= 2; j++ ) {
-        if( row + i >= 0 && col + j >= 0 &&
-            row + i < height && col + j < width) {
-          u[(row + i) * width + (col + j)] += mag * gauss[ (i + 2) * 5 + j + 2]
-        }
-      }
-    }
-  }
+    var r = at.graph( divs, [0.5, 1, 1, 0, 0, 0].map(function(x) { return x * 255})).map(Math.round)
+    var g = at.graph( divs, [0, 0, 1, 1, 0, 0].map(function(x) { return x * 255})).map(Math.round)
+    var b = at.graph( divs, [0, 0, 0, 1, 1, 0.5].map(function(x) { return x * 255})).map(Math.round)
 
-  function reset() {
-    // function matches the matrix calculation sizes to
-    // res size by init'ing new matrices.
-    // Also sets up Poisson Default Array, and default source
-    u = new Float64Array( height * width  )
-    up = new Float64Array( height * width )
-    un = new Float64Array( height * width )
-    uu = new Float64Array( height * width )
-  }
-
-  function setResolution (hRes, wRes) {
-    // when screen size is resized and upon init
-    // this does basic checking then calls reset
-    // to modify array sizes.
-    width = wRes
-    height = hRes
-    reset()
-  }
-
-  if (eqn === 'diffusion') {
-    that.update = diffusionUpdate
-  }
-  else {
-    that.update = waveUpdate
-  }
-
-  that.setResolution = setResolution
-  that.addSource = addSource
-
-  return that
-}
-
-});
-
-require.define("/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"server.js"}
-});
-
-require.define("/poissonSolver.js",function(require,module,exports,__dirname,__filename,process,global){/*jshint asi: true*/
-/*jshint laxcomma: true*/
-
-exports = module.exports = function poissonSolver() {
-	"use strict";
-
-  var that = {}
-    , u             // main data array
-    , si = []       // poisson sources x dim
-    , sj = []       // poisson sources y dim
-    , width
-    , height
-
-function poissonUpdate () {
-    // Solves the Poisson equation PDE
-    // using Successive Overrelaxation (SOR) - Gauss Seidel Method
-    var row, col, i
-    for (row = 1; row < (height - 1); ++row) {
-      for (col = 1; col < (width - 1); ++col) {
-        u[row][col] = (u[row-1][col] + u[row+1][col] +
-          u[row][col-1] + u[row][col+1]) / 4
-        for (i = 0; i < si.length; i++) {
-          if (row === si[i] && col === sj[i]) {
-            u[row][col] = 0
-          }
-        }
-      }
-    }
-    return u
+    return at.zip3(r, g, b)
   }
 
 
-  function addSource (row, col) {
-    si.push(row)
-    sj.push(col)
-  }
+  return result
 
-  Array.matrix = function (m , n, initial) {
-    // Array extender function adds capability
-    // of initializing 2D matrices of mxn size
-    // to default value = initial
-    var a, i , j, mat = []
-    for (i = 0; i < m; i += 1) {
-      a = []
-      for (j = 0; j < n; j += 1) {
-        a[j] = initial
-      }
-      mat[i] = a
-    }
-    return mat
-  }
-
-  function reset() {
-    // function matches the matrix calculation sizes to
-    // res size by init'ing new matrices.
-    // Also sets up Poisson Default Array, and default source
-    u = Array.matrix(height, width, 0)
-    initPoisson()
-  }
-
-  function initPoisson() {
-    // Initializes 1's at border, so with the gravity wells
-    // inside will make a parabolic potential field.
-    // For speed when a new gravity well is added it solves SOR using multigrid
-    // approach.
-    var i , j
-    si[0] = 0.5*height | 0;
-    sj[0] =  0.5*width | 0
-    si[1] = si[0] - 3
-    sj[1] = sj[0] - 3
-    si[2] = si[0] + 3
-    sj[2] = sj[0] - 3
-    si[3] = si[0] - 3
-    sj[3] = sj[0] + 3
-    si[4] = si[0] + 3
-    sj[4] = sj[0] + 3
-
-    for (i = 0; i < height; i += 1) {
-      for (j = 0; j < width; j += 1) {
-        u[i][j] = 10 - 10 / Math.sqrt((Math.sqrt( (i - si[0])*(i - si[0]) + (j - sj[0])*(j - sj[0])) ))
-        if (i === 0 || i === (height - 1) || (j === 0) || (j === (width - 1) )) {
-          u[i][j] = 10
-        }
-      }
-    }
-    u[si[0]][sj[0]] = 0
-    u[si[1]][sj[1]] = 0
-    u[si[2]][sj[2]] = 0
-    u[si[3]][sj[3]] = 0
-    u[si[4]][sj[4]] = 0
-  }
-
-  function setResolution (hRes, wRes) {
-    // when screen size is resized and upon init
-    // this does basic checking then calls reset
-    // to modify array sizes.
-
-    width = wRes
-    height = hRes
-    reset()
-
-  }
-
-
-  that.setResolution = setResolution
-  that.poissonUpdate = poissonUpdate
-  that.addSource = addSource
-
-  return that
 }
 
 });
@@ -935,68 +730,6 @@ module.exports = function (o) {
 
 });
 
-require.define("/node_modules/colormap/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
-});
-
-require.define("/node_modules/colormap/index.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
-var cg = require('colorgrad')()
-var at = require('arraytools')()
-
-module.exports = function (spec) {
-
-  /*
-   * Default Options
-   */
-  if( !at.isObj(spec) )
-    spec = {}
-  spec.colormap = spec.colormap || "jet"
-  spec.nshades = spec.nshades || 72
-  spec.format = spec.format || "hex"
-     
-
-  /*
-   * Supported colormaps
-   */
-  var cmap = {
-    "jet": jet
-  } 
-
-
-  /*
-   * apply map and convert result if needed
-   */
-  var carray = cmap[spec.colormap](spec.nshades)
-  var result = []
-  if (spec.format === "hex") {
-    carray.forEach( function (ar) {
-      result.push( cg.rgb2hex(ar) )
-    })
-  } else result = carray
-
-  
-
-  /*
-   * colormap functions
-   *
-   */
-  function jet(n) {
-    var divs = [0, 0.125, 0.375, 0.625, 0.875, 1].map(function(x) { return x * n })
-      var divs = divs.map( Math.round )
-
-    var r = at.graph( divs, [0.5, 1, 1, 0, 0, 0].map(function(x) { return x * 255})).map(Math.round)
-    var g = at.graph( divs, [0, 0, 1, 1, 0, 0].map(function(x) { return x * 255})).map(Math.round)
-    var b = at.graph( divs, [0, 0, 0, 1, 1, 0.5].map(function(x) { return x * 255})).map(Math.round)
-
-    return at.zip3(r, g, b)
-  }
-
-
-  return result
-
-}
-
-});
-
 require.define("/node_modules/colormap/node_modules/arraytools/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
@@ -1048,324 +781,107 @@ return that
 }
 });
 
-require.define("/entry.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
+require.define("/test/colortest.js",function(require,module,exports,__dirname,__filename,process,global){var cmap = require("colormap")
+
+console.log(typeof cmap)
+
+var canvas = document.getElementById('canvas')
+, c = canvas.getContext('2d')
+
+  var colorgradI = [
+  "#000092"
+, "#00009E"
+, "#0000AA"
+, "#0000B6"
+, "#0000C2"
+, "#0000CE"
+, "#0000DB"
+, "#0000E7"
+, "#0000F3"
+, "#0000FF"
+, "#000CFF"
+, "#0018FF"
+, "#0024FF"
+, "#0031FF"
+, "#003DFF"
+, "#0049FF"
+, "#0055FF"
+, "#0061FF"
+, "#006DFF"
+, "#0079FF"
+, "#0086FF"
+, "#0092FF"
+, "#009EFF"
+, "#00AAFF"
+, "#00B6FF"
+, "#00C2FF"
+, "#00CEFF"
+, "#00DBFF"
+, "#00E7FF"
+, "#00F3FF"
+, "#00FFFF"
+, "#0CFFF3"
+, "#18FFE7"
+, "#24FFDB"
+, "#31FFCE"
+, "#3DFFC2"
+, "#49FFB6"
+, "#55FFAA"
+, "#61FF9E"
+, "#6DFF92"
+, "#79FF86"
+, "#86FF79"
+, "#92FF6D"
+, "#9EFF61"
+, "#AAFF55"
+, "#B6FF49"
+, "#C2FF3D"
+, "#CEFF31"
+, "#DBFF24"
+, "#E7FF18"
+, "#F3FF0C"
+, "#FFFF00"
+, "#FFF300"
+, "#FFE700"
+, "#FFDB00"
+, "#FFCE00"
+, "#FFC200"
+, "#FFB600"
+, "#FFAA00"
+, "#FF9E00"
+, "#FF9200"
+, "#FF8600"
+, "#FF7900"
+, "#FF6D00"
+, "#FF6100"
+, "#FF5500"
+, "#FF4900"
+, "#FF3D00"
+, "#FF3100"
+, "#FF2400"
+, "#FF1800"
+, "#FF0C00"
+, "#FF0000"
+, "#F30000"
+, "#E70000"
+, "#DB0000"
+, "#CE0000"
+, "#C20000"
+, "#B60000"
+, "#AA0000"
+, "#9E0000"
+]
+
+var colorgradII = cmap({'colormap': 'jet', 'nshades': colorgradI.length })
 
 
-var engine = require('pde-engine')
-  , poissonEngine = require('./poissonSolver.js')
-  , cg = require('colorgrad')()
-  , cmap = require('colormap')
-
-$(document).ready(function() {
-  //var socket = io.connect("wss://droplets.jit.su")
-  //var socket = io.connect("http://droplets.benjp.c9.io")
-  var socket = io.connect("192.168.1.113")
-
-  , field = engine()
-  , canvas = document.getElementById('canvas')
-  , c = canvas.getContext('2d')
-  , xlen = 12
-  , ylen = 12
-  , rows
-  , cols
-  , xpix
-  , ypix
-  , intID = []
-
-
-// This turns on and off button selected class for animations
-  $(".category").click(function() {
-    //turn of all previously selected
-    $('.selected').not(this).removeClass('selected')
-    // Toggle this buttons class.
-    $(this).toggleClass('selected')
-    // If it wasn't previously selected then continue and engage.
-    if ( $(this).hasClass('selected') ) {
-      //find matching classes associated w/ ID
-      $("."+ $(this).attr('id') ).addClass('selected')
-    }
-  }) // end click
-
-// This turns on and off button selected class for mode info text
-  $(".mode").click(function() {
-    var mode = null
-    //turn of all previously selected
-    $('.selectedII').not(this).removeClass('selectedII')
-    // Toggle this buttons class.
-    $(this).toggleClass('selectedII')
-    // If it wasn't previously selected then continue and engage.
-    if ( $(this).hasClass('selectedII') ) {
-      // get mode ID
-      mode = $(this).attr('id')
-      //find matching classes associated w/ ID
-      $("." + mode).addClass('selectedII')
-    }
-    // Start up appropriate physics mode
-    switch(mode) {
-      case "mode1":
-        waveEqnMode();
-        break;
-      case "mode2":
-        diffusionEqnMode();
-        break;
-      case "mode3":
-        noMode();
-        break;
-      default:
-        noMode();
-    } // end switch
-  }) // end mode click
-
-
-
-// CONTENT SOCKETS /////////////////////////////////////////////////
-  socket.on('readme', function(data) {
-    $('.content.tog3').html(data)
-  })
-  socket.on('cv', function(data) {
-    $('.content.tog4').html(data)
-  })
-
-// MODE FUNCTIONS ///////////////////////////////////////////////////
-
-  // Function called on window resize which resets both canvas dims
-  // as well as calling physics engine resize method.
-  // Also acts as a general clearing house.
-  function resetScreen() {
-    $(window).resize(function(e) {
-      rows = Math.floor(window.innerHeight / xlen)
-      cols = Math.floor(window.innerWidth / ylen)
-      field.setResolution(rows, cols)
-      canvas.width  = window.innerWidth
-      canvas.height = window.innerHeight
-      //field.s = buildSprites(10)
-    })
-    $(window).trigger('resize')
-  }
-
-  // Function to clear previous bindings and interval
-  // timers from previously selected modes
-  function clearMode() {
-    var i
-    $(canvas).unbind("mousemove")
-    $(canvas).unbind("click")
-    for (i = 0; i < intID.length; i++) {
-      clearInterval(intID[i])
-    }
-    
-  }
-
-  function waveEqnMode() {
-    clearMode()    
-    field = engine( {
-      dt: 0.1
-    , gamma: 0.02
-    , eqn: "wave"
-    })
-    resetScreen()
-    var ca = cg.colorgrad("#000092", {lum: -1, nshades:41}).reverse()
-    var cb = cg.colorgrad("#000092", {lum: 1, nshades:41})
-    cb.shift()
-    field.cg = ca.concat(cb)
-
-    field.mag = 15
-
-    // Bind Click Events /////////////////////////////////////
-    $(canvas).bind("click", function(evt) {
-        var xp = evt.pageX
-          , yp = evt.pageY
-      socket.emit('clientDroplet',{
-          x: xp / window.innerWidth // turn into percentage
-        , y: yp / window.innerHeight // before sending
-        })
-      field.addSource( (yp / ylen) | 0 , (xp / xlen) | 0 , field.mag)
-    })
-    // Set render configurations
-    field.scale = 10
-    field.maxval = 40 // +/-
-    field.adj = 40
-    
-    // Start Animation
-    intID[0] = setInterval(renderField, 30)
-
-    } // END WAVEEQNMODE
-
-
-  function diffusionEqnMode() {
-    clearMode()
-    field = engine( {
-      dt: 0.1
-    , eqn: "diffusion"
-    , alpha: 0.5
-    })
-    resetScreen()
-    field.mag = 30
-    // Click Binding //////////////////////////////////////////
-    $(canvas).bind("mousemove", function(evt) {
-      xpix = evt.pageX
-      ypix = evt.pageY
-    })
-
-    intID[0] = setInterval(tracedrops, 50)
-
-    
-    function tracedrops() {
-      if (xpix) {
-        field.addSource( (ypix / ylen) | 0, (xpix / xlen) | 0, field.mag)
-        socket.emit('clientDroplet', {
-          x: xpix / window.innerWidth
-        , y: ypix / window.innerHeight
-        })
-      }
-    }
-
-    // Set render configurations
-    field.scale = 10
-    field.maxval = 80
-    field.adj = 0
-    field.cg = cmap({'colormap': 'jet', 'nshades': 81 }).reverse()
-    // Start Animation
-    intID[1] = setInterval(renderField, 50)
-
-  } // END DIFFUSIONEQMODE
-
-
-  function poissonEqnMode() {
-    $(window).trigger('resize')
-    xpix = 0.5*Math.round(window.innerWidth)
-    ypix= 0.5*Math.round(window.innerHeight)
-    // Click Binding //////////////////////////////////////////
-    $(canvas).unbind() // get rid of previous bindings
-    $(canvas).dblclick(function(evt) {
-        var xpix = evt.pageX
-          , ypix = evt.pageY
-      field.addSource( (ypix / ylen) | 0 , (xpix / xlen) | 0 )
-    })
-
-    $(canvas).mousemove(function(e){
-      xpix = e.pageY // yes this is confusing but I like my x dir up and down = height
-      ypix = e.pageX
-    })
-
-    // Set renderField configurations
-    field.scale = 26
-    field.maxval = 80
-    field.adj = 0
-    field.cg = colorgrad
-    // set renderSprites config
-    field.m = 3
-    field.k = 1
-    field.dt = 0.1
-
-    // Start Animation
-    setInterval(renderSprites, 50)
-
-  } // END PoissonEqnMode
-
-
-  // Default mode when engine not engaged.
-  function noMode() {
-    clearMode()
-    resetScreen()
-  }
-
-
-
-// If any event newDroplet, it acts no matter the mode!
-  socket.on('newDroplet', function(d) {
-      var yp = Math.round( d.y * window.innerHeight ) //recover from percentage
-        , xp = Math.round( d.x * window.innerWidth ) // to this user resolution
-      field.addSource( (yp / ylen) | 0, (xp / xlen) | 0 , field.mag)
-    })
-
-
-  // Draw Canvas /////////////////////////////////////////////////////////////////
-
-  function renderField () {
-    var row, col, ind
-      , f = field.update()
-    for (row = 0; row < rows; ++row) {
-      for (col = 0; col < cols; ++col) {
-        ind = f[row * cols + col] * field.scale | 0 // floor if > 0, ceil if < 0
-        if (Math.abs(ind) > field.maxval) {
-          ind = field.maxval * (ind < 0 ? -1 : 1)
-        }
-        c.fillStyle = field.cg[ind += field.adj] // start ind at index 0
-        c.fillRect(col*ylen, row*xlen, ylen, xlen)
-      }
-    }
-  }
-
-
-  function renderSprites () {
-  // Note F = ma & F = qE
-  // so we have field qE = ma and effect of other charges F = kq1q2(r1-r2)/r^2
-  // q1E + k*q1*q2/r^2 = ma
-  // So velocity change due to electric Field and other charges is:
-  // (q1E + k*q1*q2(r2-r1)/r^2)/m = dV/dt
-  // q1/m * (E + k*q2(r2-r1)/r^2) = dV/dt
-  // Where E = -grad(Potential)
-  // or E = -(X[i+1][j] - X[i][j])x -(X[i][j+1] - X[i][j])y
-  // q1 and q1 have been set as 1
-    var i, row, col, Ex, Ey, Fx, Fy, r, vx ,vy
-      , f = field.update()
-
-    // FIll OVER PREV SPRITES
-    c.fillStyle = "#000092"
-    for (i = 0; i < field.s.length; i++) {
-      c.beginPath()
-      c.arc(field.s[i].y, field.s[i].x, 11,0, Math.PI*2,true)
-      c.fill()
-      c.closePath()
-    }
-
-    c.fillStyle = "#FFFF87"
-    for (i = 0; i < field.s.length; i++) {
-      // Change position according to velocity
-      field.s[i].x = Math.round(field.s[i].x + field.s[i].vx)
-      field.s[i].y = Math.round(field.s[i].y + field.s[i].vy)
-      if (field.s[i].x <= 1 || field.s[i].x >= canvas.height -xlen || field.s[i].y <= 1 || field.s[i].y >= canvas.width - ylen) {
-        field.s.splice(i,1)
-        continue
-      }
-      // Draw New Sprite position
-      c.beginPath()
-      c.arc(field.s[i].y, field.s[i].x, 10,0, Math.PI*2,true)
-      c.fill()
-      c.closePath()
-      // Update velocity
-      row = field.s[i].x/xlen | 0
-      col = field.s[i].y/ylen | 0
-      // E = -gradPotential
-      Ex = -(f[row + 1][col] - f[row][col])
-      Ey = -(f[row][col + 1] - f[row][col])
-      // Coulumbs law
-      r = Math.sqrt( (field.s[i].x - xpix)*(field.s[i].x - xpix) + (field.s[i].y - ypix)*(field.s[i].y - ypix) )
-      Fx = (r > 75) ? 0 : field.k*(field.s[i].x - xpix) / r
-      Fy = (r > 75) ? 0 : field.k*(field.s[i].y - ypix) / r
-      vx = (Ex + Fx) / field.m
-      vy = (Ey + Fy) / field.m
-      field.s[i].vx +=  vx/field.dt
-      field.s[i].vy += vy/field.dt
-    }
-
-  }
-
-  function buildSprites (n) {
-    var i, s = []
-    for (i = 0; i < n; i++) {
-      s[i] = {
-          x : 0.5*rows*xlen | 0
-        , y : 0.5 * cols*ylen | 0
-        , vx : Math.random() < 0.5 ? -1 : 1 * Math.random() * 3
-        , vy : Math.random() < 0.5 ? -1 : 1 * Math.random() * 3
-      }
-    }
-    return s
-  }
-
-}) // end JQuery
-
+var i
+for (i = 0; i < colorgradI.length; ++i) {
+c.fillStyle = colorgradI[i] // start ind at index 0
+c.fillRect(i*10, 1, 10, 200)
+c.fillStyle = colorgradII[i] // start ind at index 0
+c.fillRect(i*10, 201, 10, 200)
+}
 });
-require("/entry.js");
+require("/test/colortest.js");
 })();

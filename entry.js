@@ -4,11 +4,12 @@
 var engine = require('pde-engine')
   , poissonEngine = require('./poissonSolver.js')
   , cg = require('colorgrad')()
+  , cmap = require('colormap')
 
 $(document).ready(function() {
-  //var socket = io.connect("wss://droplets.jit.su")
+  var socket = io.connect("wss://droplets.jit.su")
   //var socket = io.connect("http://droplets.benjp.c9.io")
-  var socket = io.connect("192.168.1.113")
+  //var socket = io.connect("192.168.1.113")
 
   , field = engine()
   , canvas = document.getElementById('canvas')
@@ -94,24 +95,24 @@ $(document).ready(function() {
 
   // Function to clear previous bindings and interval
   // timers from previously selected modes
-  function clearScreen() {
+  function clearMode() {
     var i
     $(canvas).unbind("mousemove")
     $(canvas).unbind("click")
     for (i = 0; i < intID.length; i++) {
       clearInterval(intID[i])
     }
-    resetScreen()
+    
   }
 
   function waveEqnMode() {
-    clearScreen()
+    clearMode()    
     field = engine( {
       dt: 0.1
     , gamma: 0.02
     , eqn: "wave"
     })
-  
+    resetScreen()
     var ca = cg.colorgrad("#000092", {lum: -1, nshades:41}).reverse()
     var cb = cg.colorgrad("#000092", {lum: 1, nshades:41})
     cb.shift()
@@ -141,13 +142,13 @@ $(document).ready(function() {
 
 
   function diffusionEqnMode() {
-    clearScreen()
+    clearMode()
     field = engine( {
       dt: 0.1
     , eqn: "diffusion"
     , alpha: 0.5
     })
-
+    resetScreen()
     field.mag = 30
     // Click Binding //////////////////////////////////////////
     $(canvas).bind("mousemove", function(evt) {
@@ -159,20 +160,20 @@ $(document).ready(function() {
 
     
     function tracedrops() {
-      field.addSource( (ypix / ylen) | 0 , (xpix / xlen) | 0 , field.mag)
-      socket.emit('clientDroplet', {
+      if (xpix) {
+        field.addSource( (ypix / ylen) | 0, (xpix / xlen) | 0, field.mag)
+        socket.emit('clientDroplet', {
           x: xpix / window.innerWidth
         , y: ypix / window.innerHeight
-      })
-
+        })
+      }
     }
 
     // Set render configurations
     field.scale = 10
     field.maxval = 80
     field.adj = 0
-    field.cg = buildColorGrad(null)
-
+    field.cg = cmap({'colormap': 'jet', 'nshades': 81 }).reverse()
     // Start Animation
     intID[1] = setInterval(renderField, 50)
 
@@ -314,122 +315,3 @@ $(document).ready(function() {
   }
 
 }) // end JQuery
-
-
-// HELPER FUNCS //////////////////////////////////////////////////////////
-function colorLuminance(hex, lum) {
-  // validate hex string
-  hex = String(hex).replace(/[^0-9a-f]/gi, '')
-  if (hex.length < 6) {
-    hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2]
-  }
-  lum = lum || 0
-  // convert to decimal and change luminosity
-  var rgb = "#", c, i
-  for (i = 0; i < 3; i++) {
-    c = parseInt(hex.substr(i*2,2), 16)
-    c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16)
-    rgb += ("00"+c).substr(c.length)
-  }
-  return rgb
-}
-
-function buildColorGrad(baseShade, numElem, lum) {
-  // Build the gradient variable from a starting darkest shade.
-  // Goes up in lum/numElement increments, where lum
-  // is percent / 100 (1 = 100% increase)
-  var i
-  , nc = []
-  , inc = lum/numElem
-  if (baseShade) {
-    for (i = 0; i < numElem; ++i) {
-      nc[i] = colorLuminance(baseShade, i*inc)
-    }
-    return nc
-  }
-  else {
-    return [
-        "#000092"
-      , "#00009E"
-      , "#0000AA"
-      , "#0000B6"
-      , "#0000C2"
-      , "#0000CE"
-      , "#0000DB"
-      , "#0000E7"
-      , "#0000F3"
-      , "#0000FF"
-      , "#000CFF"
-      , "#0018FF"
-      , "#0024FF"
-      , "#0031FF"
-      , "#003DFF"
-      , "#0049FF"
-      , "#0055FF"
-      , "#0061FF"
-      , "#006DFF"
-      , "#0079FF"
-      , "#0086FF"
-      , "#0092FF"
-      , "#009EFF"
-      , "#00AAFF"
-      , "#00B6FF"
-      , "#00C2FF"
-      , "#00CEFF"
-      , "#00DBFF"
-      , "#00E7FF"
-      , "#00F3FF"
-      , "#00FFFF"
-      , "#0CFFF3"
-      , "#18FFE7"
-      , "#24FFDB"
-      , "#31FFCE"
-      , "#3DFFC2"
-      , "#49FFB6"
-      , "#55FFAA"
-      , "#61FF9E"
-      , "#6DFF92"
-      , "#79FF86"
-      , "#86FF79"
-      , "#92FF6D"
-      , "#9EFF61"
-      , "#AAFF55"
-      , "#B6FF49"
-      , "#C2FF3D"
-      , "#CEFF31"
-      , "#DBFF24"
-      , "#E7FF18"
-      , "#F3FF0C"
-      , "#FFFF00"
-      , "#FFF300"
-      , "#FFE700"
-      , "#FFDB00"
-      , "#FFCE00"
-      , "#FFC200"
-      , "#FFB600"
-      , "#FFAA00"
-      , "#FF9E00"
-      , "#FF9200"
-      , "#FF8600"
-      , "#FF7900"
-      , "#FF6D00"
-      , "#FF6100"
-      , "#FF5500"
-      , "#FF4900"
-      , "#FF3D00"
-      , "#FF3100"
-      , "#FF2400"
-      , "#FF1800"
-      , "#FF0C00"
-      , "#FF0000"
-      , "#F30000"
-      , "#E70000"
-      , "#DB0000"
-      , "#CE0000"
-      , "#C20000"
-      , "#B60000"
-      , "#AA0000"
-      , "#9E0000"
-    ]
-  }
-}

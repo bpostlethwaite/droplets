@@ -14,11 +14,12 @@
     "socket.io": ">= 0.9",
     "marked": ">=0.2.x",
     "pde-engine": ">=0.2",
-    "colorgrad": ">=0.1"
+    "colorgrad": ">=0.1",
+    "colormap": ">=0.0.0"
   },
   "devDependencies": {
     "printarray": ">=0.1"
-    },
+  },
   "optionalDependencies": {},
   "engines": {
     "node": ">=0.6"

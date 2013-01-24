@@ -1,5 +1,4 @@
-/*jshint asi: true*/
-/*jshint laxcomma: true*/
+
 "use strict";
 var server = require("node-static")
   , app = require("http").createServer(handler)
@@ -10,7 +9,7 @@ var server = require("node-static")
 // Set logging level
 io.set('log level', 1)
 // Listen on port
-var port = 8082
+var port = 80
 app.listen(port)
 console.log("Static server listening on " + port)
 
