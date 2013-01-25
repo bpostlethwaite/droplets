@@ -432,26 +432,27 @@ process.binding = function (name) {
 
 });
 
-require.define("/node_modules/pde-engine/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"pde-engine.js"}
+require.define("/pde-engine/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"pde-engine.js"}
 });
 
-require.define("/node_modules/pde-engine/pde-engine.js",function(require,module,exports,__dirname,__filename,process,global){/*  pde-engine
+require.define("/pde-engine/pde-engine.js",function(require,module,exports,__dirname,__filename,process,global){/*  pde-engine
  *
  * A PDE solver for the wave and diffusion equations.
  *
  * Ben Postlethwaite 2012
  * benpostlethwaite.ca
+ *
+ * License MIT
  */
 
 module.exports = function pdeEngine(spec) {
   var that = {}
     , spec = spec || {}
-    , dt = spec.dt || 0.1
-    , dx = spec.dx || 1
-    , gamma = spec.gamma || 0.02   // wave decay factor
+    , dt = spec.dt || 0.1          // time step
+    , dx = spec.dx || 1            // spatial step
+    , gamma = spec.gamma || 0.02   // wave or diffusion paramater (controls decay)
     , vel = spec.vel || 2          // wave velocity
-    , alpha = spec.alpha || 1      // diffusion paramter
-    , eqn = spec.eqn || 'wave'
+    , eqn = spec.eqn || 'wave'     // or "diffusion"
     , u                            // main data array
     , un                           // next time step data array
     , up                           // previous time step data array
@@ -465,6 +466,9 @@ module.exports = function pdeEngine(spec) {
       , 1, -4,  1
       , 0,  1,  0
     ]
+  /*
+   * 2D Guassian kernel for adding sources
+   */
     , gauss = [
       1/256,  4/256,  6/256,  4/256, 1/256
       , 4/256, 16/256, 24/256, 16/256, 4/256
@@ -472,16 +476,20 @@ module.exports = function pdeEngine(spec) {
       , 4/256, 16/256, 24/256, 16/256, 4/256
       , 1/256,  4/256,  6/256,  4/256, 1/256
     ]
-
+  /*
+   * c1 and c2 are used for the wave eqn coefficients
+   * they have influence from gamma (wave decay)
+   */
   , c1 = 2 - gamma * dt
   , c2 = gamma * dt - 1
   , c3 = (dt*dt * vel*vel) / (dx*dx)
-  , c4 = alpha * dt / (dx * dx)
+  , c4 = gamma * dt / (dx * dx)
 
-
+  /* 
+   * Solves the wave equation PDE
+   * using convolution.
+   */
   function waveUpdate () {
-    // Solves the wave equation PDE
-    // using convolution.
     var row, col, ind
     var dum = conv2(u, coeffs)
      for (row = 0; row < height; ++row)
@@ -494,9 +502,11 @@ module.exports = function pdeEngine(spec) {
     return u
   }
 
+  /*
+   * Solves the diffusion equation PDE
+   * using convolution.
+   */ 
   function diffusionUpdate () {
-    // Solves the diffusion equation PDE
-    // using convolution.
     var row, col, ind
     var dum = conv2(u, coeffs)
     for (row = 0; row < height; ++row)
@@ -508,11 +518,13 @@ module.exports = function pdeEngine(spec) {
     return u
   }
 
+  /*
+   * iterates over image, then over kernel and
+   * multiplies the flipped kernel coeffs
+   * with appropriate image values, sums them
+   * then adds into new array entry.
+   */
   function conv2(image, kernel) {
-    // iterates over image, then over kernel and
-    // multiplies the flipped kernel coeffs
-    // with appropriate image values, sums them
-    // then adds into new array entry.
     var out = new Float64Array( height * width  )
     var acc = 0
     , row, col, i, j, k
@@ -534,10 +546,11 @@ module.exports = function pdeEngine(spec) {
     return out
   }
 
+  /*
+   * adds a new gaussian droplet to u
+   * at specified coordinates.
+   */
   function addSource (row, col, mag) {
-    // adds a new gaussian droplet to u
-    // at specified coordinates.
-    // (For now just adds a point source)
     var i, j
     for ( i = -2; i <= 2; i++ ) {
       for ( j = -2; j <= 2; j++ ) {
@@ -549,20 +562,23 @@ module.exports = function pdeEngine(spec) {
     }
   }
 
+/*
+ * function matches the matrix calculation sizes to
+ * reset size by init'ing new matrices.
+ */
   function reset() {
-    // function matches the matrix calculation sizes to
-    // res size by init'ing new matrices.
-    // Also sets up Poisson Default Array, and default source
     u = new Float64Array( height * width  )
     up = new Float64Array( height * width )
     un = new Float64Array( height * width )
     uu = new Float64Array( height * width )
   }
 
+/*
+ * when screen size is resized and upon init
+ * this does basic checking then calls reset
+ * to modify array sizes.
+ */
   function setResolution (hRes, wRes) {
-    // when screen size is resized and upon init
-    // this does basic checking then calls reset
-    // to modify array sizes.
     width = wRes
     height = hRes
     reset()
@@ -583,10 +599,10 @@ module.exports = function pdeEngine(spec) {
 
 });
 
-require.define("/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"server.js"}
+require.define("/droplets/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"server.js"}
 });
 
-require.define("/poissonSolver.js",function(require,module,exports,__dirname,__filename,process,global){/*jshint asi: true*/
+require.define("/droplets/poissonSolver.js",function(require,module,exports,__dirname,__filename,process,global){/*jshint asi: true*/
 /*jshint laxcomma: true*/
 
 exports = module.exports = function poissonSolver() {
@@ -699,10 +715,10 @@ function poissonUpdate () {
 
 });
 
-require.define("/node_modules/colorgrad/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"colorgrad.js"}
+require.define("/droplets/node_modules/colorgrad/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"colorgrad.js"}
 });
 
-require.define("/node_modules/colorgrad/colorgrad.js",function(require,module,exports,__dirname,__filename,process,global){/*  colorgrad
+require.define("/droplets/node_modules/colorgrad/colorgrad.js",function(require,module,exports,__dirname,__filename,process,global){/*  colorgrad
  *
  * A simple way to build a hexadecimal or rgb color gradient
  *
@@ -866,7 +882,7 @@ module.exports = function () {
 
 });
 
-require.define("/node_modules/colorgrad/arraymath.js",function(require,module,exports,__dirname,__filename,process,global){/*  arraymath
+require.define("/droplets/node_modules/colorgrad/arraymath.js",function(require,module,exports,__dirname,__filename,process,global){/*  arraymath
  *
  * simple array mathematic functions
  *
@@ -935,10 +951,10 @@ module.exports = function (o) {
 
 });
 
-require.define("/node_modules/colormap/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+require.define("/droplets/node_modules/colormap/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/colormap/index.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
+require.define("/droplets/node_modules/colormap/index.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
 var cg = require('colorgrad')()
 var at = require('arraytools')()
 
@@ -997,10 +1013,10 @@ module.exports = function (spec) {
 
 });
 
-require.define("/node_modules/colormap/node_modules/arraytools/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+require.define("/droplets/node_modules/colormap/node_modules/arraytools/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/colormap/node_modules/arraytools/index.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
+require.define("/droplets/node_modules/colormap/node_modules/arraytools/index.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
 module.exports = function () {
 
   var that = {}
@@ -1048,10 +1064,10 @@ return that
 }
 });
 
-require.define("/entry.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
+require.define("/droplets/entry.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
 
 
-var engine = require('pde-engine')
+var engine = require('../pde-engine/pde-engine')
   , poissonEngine = require('./poissonSolver.js')
   , cg = require('colorgrad')()
   , cmap = require('colormap')
@@ -1152,11 +1168,11 @@ $(document).ready(function() {
     for (i = 0; i < intID.length; i++) {
       clearInterval(intID[i])
     }
-    
+
   }
 
   function waveEqnMode() {
-    clearMode()    
+    clearMode()
     field = engine( {
       dt: 0.1
     , gamma: 0.02
@@ -1184,7 +1200,7 @@ $(document).ready(function() {
     field.scale = 10
     field.maxval = 40 // +/-
     field.adj = 40
-    
+
     // Start Animation
     intID[0] = setInterval(renderField, 30)
 
@@ -1208,7 +1224,7 @@ $(document).ready(function() {
 
     intID[0] = setInterval(tracedrops, 50)
 
-    
+
     function tracedrops() {
       if (xpix) {
         field.addSource( (ypix / ylen) | 0, (xpix / xlen) | 0, field.mag)
@@ -1367,5 +1383,5 @@ $(document).ready(function() {
 }) // end JQuery
 
 });
-require("/entry.js");
+require("/droplets/entry.js");
 })();
