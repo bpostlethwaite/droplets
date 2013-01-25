@@ -1398,7 +1398,7 @@ $(document).ready(function() {
     field = engine( {
       dt: 0.1
     , eqn: "diffusion"
-    , alpha: 0.5
+    , gamma: 0.5
     })
     resetScreen()
     field.mag = 30
