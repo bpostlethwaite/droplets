@@ -173,7 +173,7 @@ $(document).ready(function() {
     field.scale = 10
     field.maxval = 80
     field.adj = 0
-    field.cg = cmap({'colormap': 'jet', 'nshades': 81 }).reverse()
+    field.cg = cmap({'colormap': 'jet', 'nshades': 81 })
     // Start Animation
     intID[1] = setInterval(renderField, 50)
 
