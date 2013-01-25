@@ -102,11 +102,11 @@ $(document).ready(function() {
     for (i = 0; i < intID.length; i++) {
       clearInterval(intID[i])
     }
-    
+
   }
 
   function waveEqnMode() {
-    clearMode()    
+    clearMode()
     field = engine( {
       dt: 0.1
     , gamma: 0.02
@@ -134,7 +134,7 @@ $(document).ready(function() {
     field.scale = 10
     field.maxval = 40 // +/-
     field.adj = 40
-    
+
     // Start Animation
     intID[0] = setInterval(renderField, 30)
 
@@ -158,7 +158,7 @@ $(document).ready(function() {
 
     intID[0] = setInterval(tracedrops, 50)
 
-    
+
     function tracedrops() {
       if (xpix) {
         field.addSource( (ypix / ylen) | 0, (xpix / xlen) | 0, field.mag)

@@ -432,10 +432,17 @@ process.binding = function (name) {
 
 });
 
+<<<<<<< HEAD
 require.define("/node_modules/pde-engine/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
 require.define("/node_modules/pde-engine/index.js",function(require,module,exports,__dirname,__filename,process,global){/*  pde-engine
+=======
+require.define("/pde-engine/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"pde-engine.js"}
+});
+
+require.define("/pde-engine/pde-engine.js",function(require,module,exports,__dirname,__filename,process,global){/*  pde-engine
+>>>>>>> dev
  *
  * A PDE solver for the wave and diffusion equations.
  *
@@ -599,10 +606,10 @@ module.exports = function pdeEngine(spec) {
 
 });
 
-require.define("/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"server.js"}
+require.define("/droplets/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"server.js"}
 });
 
-require.define("/poissonSolver.js",function(require,module,exports,__dirname,__filename,process,global){/*jshint asi: true*/
+require.define("/droplets/poissonSolver.js",function(require,module,exports,__dirname,__filename,process,global){/*jshint asi: true*/
 /*jshint laxcomma: true*/
 
 exports = module.exports = function poissonSolver() {
@@ -715,10 +722,10 @@ function poissonUpdate () {
 
 });
 
-require.define("/node_modules/colorgrad/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"colorgrad.js"}
+require.define("/droplets/node_modules/colorgrad/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"colorgrad.js"}
 });
 
-require.define("/node_modules/colorgrad/colorgrad.js",function(require,module,exports,__dirname,__filename,process,global){/*  colorgrad
+require.define("/droplets/node_modules/colorgrad/colorgrad.js",function(require,module,exports,__dirname,__filename,process,global){/*  colorgrad
  *
  * A simple way to build a hexadecimal or rgb color gradient
  *
@@ -882,7 +889,7 @@ module.exports = function () {
 
 });
 
-require.define("/node_modules/colorgrad/arraymath.js",function(require,module,exports,__dirname,__filename,process,global){/*  arraymath
+require.define("/droplets/node_modules/colorgrad/arraymath.js",function(require,module,exports,__dirname,__filename,process,global){/*  arraymath
  *
  * simple array mathematic functions
  *
@@ -951,15 +958,19 @@ module.exports = function (o) {
 
 });
 
-require.define("/node_modules/colormap/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+require.define("/droplets/node_modules/colormap/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
+<<<<<<< HEAD
 require.define("/node_modules/colormap/index.js",function(require,module,exports,__dirname,__filename,process,global){/*
  * Ben Postlethwaite
  * January 2013
  * License MIT
  */
 "use strict";
+=======
+require.define("/droplets/node_modules/colormap/index.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
+>>>>>>> dev
 var cg = require('colorgrad')()
 var at = require('arraytools')()
 
@@ -1199,10 +1210,10 @@ module.exports = function (spec) {
 
 });
 
-require.define("/node_modules/colormap/node_modules/arraytools/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
+require.define("/droplets/node_modules/colormap/node_modules/arraytools/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/colormap/node_modules/arraytools/index.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
+require.define("/droplets/node_modules/colormap/node_modules/arraytools/index.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
 module.exports = function () {
 
   var that = {}
@@ -1250,10 +1261,10 @@ return that
 }
 });
 
-require.define("/entry.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
+require.define("/droplets/entry.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
 
 
-var engine = require('pde-engine')
+var engine = require('../pde-engine/pde-engine')
   , poissonEngine = require('./poissonSolver.js')
   , cg = require('colorgrad')()
   , cmap = require('colormap')
@@ -1354,11 +1365,11 @@ $(document).ready(function() {
     for (i = 0; i < intID.length; i++) {
       clearInterval(intID[i])
     }
-    
+
   }
 
   function waveEqnMode() {
-    clearMode()    
+    clearMode()
     field = engine( {
       dt: 0.1
     , gamma: 0.02
@@ -1386,7 +1397,7 @@ $(document).ready(function() {
     field.scale = 10
     field.maxval = 40 // +/-
     field.adj = 40
-    
+
     // Start Animation
     intID[0] = setInterval(renderField, 30)
 
@@ -1410,7 +1421,7 @@ $(document).ready(function() {
 
     intID[0] = setInterval(tracedrops, 50)
 
-    
+
     function tracedrops() {
       if (xpix) {
         field.addSource( (ypix / ylen) | 0, (xpix / xlen) | 0, field.mag)
@@ -1569,5 +1580,5 @@ $(document).ready(function() {
 }) // end JQuery
 
 });
-require("/entry.js");
+require("/droplets/entry.js");
 })();
