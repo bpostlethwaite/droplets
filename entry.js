@@ -113,7 +113,7 @@ $(document).ready(function() {
     , eqn: "wave"
     })
     resetScreen()
-    var ca = cg.colorgrad("#000092", {lum: -1, nshades:41})
+    var ca = cg.colorgrad("#000092", {lum: -1, nshades:41}).reverse()
     var cb = cg.colorgrad("#000092", {lum: 1, nshades:41})
     cb.shift()
     field.cg = ca.concat(cb)
