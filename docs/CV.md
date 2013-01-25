@@ -21,15 +21,15 @@ Brown University, Rhode Island, USA </br>
 * Management of seismic datasets: developed a programming environment for seismic database querying and data visualization in Python
 * Seismic acquisition theory, different gathers, basics of land and marine acquisition
 * Seismic data processing flow:  wrote Matlab code base for seismic pre-processing, receiver function calculation & analysis and post-processing with high degree of automation
-* Structural and stratigraphic interpretation and mapping of 1D/2D seismic reflection data
-* Understanding of sedimentology and stratigraphic theory
+* Geophysical research ability: successfully applied new methods outlined in research journals - curvelets, spectral deconvolution - to problem at hand. Developed quantitative statistical tests to measure quality and effectiveness of new these methods
 * Good working knowledge of inversion theory and its application: developed viable DC and gravity inversion code in Matlab
 * Management of the acquisition of geophysical data during remote field operations
 
 #### Math
 * Advanced mathematical ability especially numerical optimization and graduate level linear / matrix theory
 * Some proficiency with machine learning and statistical mathematics
-Programming and Computer Systems
+
+#### Programming and Computer Systems
 * Strong scripting ability especially in Python and Node.js glue code. Have written code between separate systems and work flows to improve efficiency
 * Technical skill to quickly develop small to medium sized GUI and command line programs
 * Familiar with networking and server technology. Programmed and deployed servers and websites including real-time technology in Node.js
@@ -41,7 +41,7 @@ Programming and Computer Systems
 * Eager and effective learner
 * Excellent at creatively applying theory and/or technical tool-sets to issues or problems
 * Confident in making decisions and implementing solutions
-* Enjoy problem solving as an individual or within a team environment
+* Enjoy problem solving and problem finding as an individual or within a team environment
 * Strong technical writing and presentation skills
 * Excel in very challenging environments.
 * Hobbies include mountaineering, kayaking, programming and bike-shed variety construction / engineering projects.
