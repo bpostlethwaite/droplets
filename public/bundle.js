@@ -432,26 +432,27 @@ process.binding = function (name) {
 
 });
 
-require.define("/node_modules/pde-engine/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"pde-engine.js"}
+require.define("/node_modules/pde-engine/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/pde-engine/pde-engine.js",function(require,module,exports,__dirname,__filename,process,global){/*  pde-engine
+require.define("/node_modules/pde-engine/index.js",function(require,module,exports,__dirname,__filename,process,global){/*  pde-engine
  *
  * A PDE solver for the wave and diffusion equations.
  *
  * Ben Postlethwaite 2012
  * benpostlethwaite.ca
+ *
+ * License MIT
  */
 
 module.exports = function pdeEngine(spec) {
   var that = {}
     , spec = spec || {}
-    , dt = spec.dt || 0.1
-    , dx = spec.dx || 1
-    , gamma = spec.gamma || 0.02   // wave decay factor
+    , dt = spec.dt || 0.1          // time step
+    , dx = spec.dx || 1            // spatial step
+    , gamma = spec.gamma || 0.02   // wave or diffusion paramater (controls decay)
     , vel = spec.vel || 2          // wave velocity
-    , alpha = spec.alpha || 1      // diffusion paramter
-    , eqn = spec.eqn || 'wave'
+    , eqn = spec.eqn || 'wave'     // or "diffusion"
     , u                            // main data array
     , un                           // next time step data array
     , up                           // previous time step data array
@@ -465,6 +466,9 @@ module.exports = function pdeEngine(spec) {
       , 1, -4,  1
       , 0,  1,  0
     ]
+  /*
+   * 2D Guassian kernel for adding sources
+   */
     , gauss = [
       1/256,  4/256,  6/256,  4/256, 1/256
       , 4/256, 16/256, 24/256, 16/256, 4/256
@@ -472,16 +476,20 @@ module.exports = function pdeEngine(spec) {
       , 4/256, 16/256, 24/256, 16/256, 4/256
       , 1/256,  4/256,  6/256,  4/256, 1/256
     ]
-
+  /*
+   * c1 and c2 are used for the wave eqn coefficients
+   * they have influence from gamma (wave decay)
+   */
   , c1 = 2 - gamma * dt
   , c2 = gamma * dt - 1
   , c3 = (dt*dt * vel*vel) / (dx*dx)
-  , c4 = alpha * dt / (dx * dx)
+  , c4 = gamma * dt / (dx * dx)
 
-
+  /* 
+   * Solves the wave equation PDE
+   * using convolution.
+   */
   function waveUpdate () {
-    // Solves the wave equation PDE
-    // using convolution.
     var row, col, ind
     var dum = conv2(u, coeffs)
      for (row = 0; row < height; ++row)
@@ -494,9 +502,11 @@ module.exports = function pdeEngine(spec) {
     return u
   }
 
+  /*
+   * Solves the diffusion equation PDE
+   * using convolution.
+   */ 
   function diffusionUpdate () {
-    // Solves the diffusion equation PDE
-    // using convolution.
     var row, col, ind
     var dum = conv2(u, coeffs)
     for (row = 0; row < height; ++row)
@@ -508,11 +518,13 @@ module.exports = function pdeEngine(spec) {
     return u
   }
 
+  /*
+   * iterates over image, then over kernel and
+   * multiplies the flipped kernel coeffs
+   * with appropriate image values, sums them
+   * then adds into new array entry.
+   */
   function conv2(image, kernel) {
-    // iterates over image, then over kernel and
-    // multiplies the flipped kernel coeffs
-    // with appropriate image values, sums them
-    // then adds into new array entry.
     var out = new Float64Array( height * width  )
     var acc = 0
     , row, col, i, j, k
@@ -534,10 +546,11 @@ module.exports = function pdeEngine(spec) {
     return out
   }
 
+  /*
+   * adds a new gaussian droplet to u
+   * at specified coordinates.
+   */
   function addSource (row, col, mag) {
-    // adds a new gaussian droplet to u
-    // at specified coordinates.
-    // (For now just adds a point source)
     var i, j
     for ( i = -2; i <= 2; i++ ) {
       for ( j = -2; j <= 2; j++ ) {
@@ -549,20 +562,23 @@ module.exports = function pdeEngine(spec) {
     }
   }
 
+/*
+ * function matches the matrix calculation sizes to
+ * reset size by init'ing new matrices.
+ */
   function reset() {
-    // function matches the matrix calculation sizes to
-    // res size by init'ing new matrices.
-    // Also sets up Poisson Default Array, and default source
     u = new Float64Array( height * width  )
     up = new Float64Array( height * width )
     un = new Float64Array( height * width )
     uu = new Float64Array( height * width )
   }
 
+/*
+ * when screen size is resized and upon init
+ * this does basic checking then calls reset
+ * to modify array sizes.
+ */
   function setResolution (hRes, wRes) {
-    // when screen size is resized and upon init
-    // this does basic checking then calls reset
-    // to modify array sizes.
     width = wRes
     height = hRes
     reset()
@@ -938,7 +954,12 @@ module.exports = function (o) {
 require.define("/node_modules/colormap/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/colormap/index.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
+require.define("/node_modules/colormap/index.js",function(require,module,exports,__dirname,__filename,process,global){/*
+ * Ben Postlethwaite
+ * January 2013
+ * License MIT
+ */
+"use strict";
 var cg = require('colorgrad')()
 var at = require('arraytools')()
 
@@ -947,27 +968,192 @@ module.exports = function (spec) {
   /*
    * Default Options
    */
-  if( !at.isObj(spec) )
+   if( !at.isObj(spec) )
     spec = {}
   spec.colormap = spec.colormap || "jet"
   spec.nshades = spec.nshades || 72
   spec.format = spec.format || "hex"
-     
+
+
+
 
   /*
    * Supported colormaps
    */
-  var cmap = {
-    "jet": jet
-  } 
+   var cmaps = {
+    jet: {
+      r: [
+      [0.000, 0.376, 0.627, 0.878, 1.000]
+      , [0.000, 0.016, 1.000, 0.984, 0.500]
+      ]
+      , g: [
+      [0.000, 0.125, 0.376, 0.627, 0.878, 1.000]
+      , [0.000, 0.016, 1.000, 0.984, 0.000, 0.000]
+      ]
+      , b: [
+      [0.000, 0.125, 0.376, 0.627, 1.000]
+      , [0.516, 1.000, 0.984, 0.000, 0.000]
+      ]
 
+    }
+    , hsv: {
+      r: [
+      [0.000, 0.169, 0.173, 0.337, 0.341, 0.671, 0.675, 0.839, 0.843, 1.000]
+      , [1.000, 0.992, 0.969, 0.000, 0.000, 0.008, 0.031, 1.000, 1.000, 1.000]
+      ]
+      , g: [
+      [0.000, 0.169, 0.173, 0.506, 0.671, 0.675, 1.000]
+      , [0.000, 1.000, 1.000, 0.977, 0.000, 0.000, 0.000]
+      ]
+      , b: [
+      [0.000, 0.337, 0.341, 0.506, 0.839, 0.843, 1.000]
+      , [0.000, 0.016, 0.039, 1.000, 0.984, 0.961, 0.023]
+      ]
+
+    }
+    , hot: {
+      r: [
+      [0.000, 0.376, 1.000]
+      , [0.010, 1.000, 1.000]
+      ]
+      , g: [
+      [0.000, 0.376, 0.753, 1.000]
+      , [0.000, 0.010, 1.000, 1.000]
+      ]
+      , b: [
+      [0.000, 0.753, 1.000]
+      , [0.000, 0.016, 1.000]
+      ]
+
+    }
+    , cool: {
+      r: [
+      [0.000, 1.000]
+      , [0.000, 1.000]
+      ]
+      , g: [
+      [0.000, 1.000]
+      , [1.000, 0.000]
+      ]
+      , b: [
+      [0.000, 1.000]
+      , [1.000, 1.000]
+      ]
+
+    }
+    , spring: {
+      r: [
+      [0.000, 1.000]
+      , [1.000, 1.000]
+      ]
+      , g: [
+      [0.000, 1.000]
+      , [0.000, 1.000]
+      ]
+      , b: [
+      [0.000, 1.000]
+      , [1.000, 0.000]
+      ]
+
+    }
+    , summer: {
+      r: [
+      [0.000, 1.000]
+      , [0.000, 1.000]
+      ]
+      , g: [
+      [0.000, 1.000]
+      , [0.500, 1.000]
+      ]
+      , b: [
+      [0.000, 1.000]
+      , [0.400, 0.400]
+      ]
+
+    }
+    , autumn: {
+      r: [
+      [0.000, 1.000]
+      , [1.000, 1.000]
+      ]
+      , g: [
+      [0.000, 1.000]
+      , [0.000, 1.000]
+      ]
+      , b: [
+      [0.000, 1.000]
+      , [0.000, 0.000]
+      ]
+
+    }
+    , winter: {
+      r: [
+      [0.000, 1.000]
+      , [0.000, 0.000]
+      ]
+      , g: [
+      [0.000, 1.000]
+      , [0.000, 1.000]
+      ]
+      , b: [
+      [0.000, 1.000]
+      , [1.000, 0.500]
+      ]
+
+    }
+    , gray: {
+      r: [
+      [0.000, 1.000]
+      , [0.000, 1.000]
+      ]
+      , g: [
+      [0.000, 1.000]
+      , [0.000, 1.000]
+      ]
+      , b: [
+      [0.000, 1.000]
+      , [0.000, 1.000]
+      ]
+
+    }
+    , bone: {
+      r: [
+      [0.000, 0.753, 1.000]
+      , [0.000, 0.661, 1.000]
+      ]
+      , g: [
+      [0.000, 0.376, 0.753, 1.000]
+      , [0.000, 0.331, 0.784, 1.000]
+      ]
+      , b: [
+      [0.000, 0.376, 1.000]
+      , [0.001, 0.454, 1.000]
+      ]
+
+    }
+    , copper: {
+      r: [
+      [0.000, 0.804, 1.000]
+      , [0.000, 1.000, 1.000]
+      ]
+      , g: [
+      [0.000, 1.000]
+      , [0.000, 0.781]
+      ]
+      , b: [
+      [0.000, 1.000]
+      , [0.000, 0.497]
+      ]
+
+    }
+  } 
 
   /*
    * apply map and convert result if needed
    */
-  var carray = cmap[spec.colormap](spec.nshades)
-  var result = []
-  if (spec.format === "hex") {
+   var carray = buildmap(cmaps[spec.colormap], spec.nshades)
+   var result = []
+   if (spec.format === "hex") {
     carray.forEach( function (ar) {
       result.push( cg.rgb2hex(ar) )
     })
@@ -976,22 +1162,38 @@ module.exports = function (spec) {
   
 
   /*
-   * colormap functions
+   * colormap function
    *
    */
-  function jet(n) {
-    var divs = [0, 0.125, 0.375, 0.625, 0.875, 1].map(function(x) { return x * n })
-      var divs = divs.map( Math.round )
+   function buildmap(cmap, n) {
 
-    var r = at.graph( divs, [0.5, 1, 1, 0, 0, 0].map(function(x) { return x * 255})).map(Math.round)
-    var g = at.graph( divs, [0, 0, 1, 1, 0, 0].map(function(x) { return x * 255})).map(Math.round)
-    var b = at.graph( divs, [0, 0, 0, 1, 1, 0.5].map(function(x) { return x * 255})).map(Math.round)
+    var div, val, res = []
+    var key = ['r', 'g', 'b']
+    for (var i = 0; i < 3; i++) {
+      /*
+       * map x axis point from 0->1 to 0 -> n 
+       */
+       div = cmap[key[i]][0].map(function(x) { return x * n }).map( Math.round )
+      /*
+       * map 0 -> 1 rgb value to 0 -> 255
+       */
+       val = cmap[key[i]][1].map(function(x) { return x * 255 })
 
-    return at.zip3(r, g, b)
-  }
+      /*
+       * Build linear values from x axis point to x axis point
+       * and from rgb value to value
+       */
+       res[i] = at.graph( div, val ).map( Math.round )
+     }
+    /*
+     * Then zip up 3xn vectors into nx3 vectors
+     */
+     return at.zip3(res[0], res[1], res[2])
+   }
 
 
-  return result
+   return result   
+  
 
 }
 
