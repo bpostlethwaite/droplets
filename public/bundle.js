@@ -453,6 +453,8 @@ module.exports = function pdeEngine(spec) {
     , gamma = spec.gamma || 0.02   // wave or diffusion paramater (controls decay)
     , vel = spec.vel || 2          // wave velocity
     , eqn = spec.eqn || 'wave'     // or "diffusion"
+    , vres = spec.vres || 5        // default starting vertical resolution
+    , hres = spec.hres || 5        // default starting horizontal resolution
     , u                            // main data array
     , un                           // next time step data array
     , up                           // previous time step data array
@@ -477,15 +479,19 @@ module.exports = function pdeEngine(spec) {
       , 1/256,  4/256,  6/256,  4/256, 1/256
     ]
   /*
-   * c1 and c2 are used for the wave eqn coefficients
+   * c1, c2 & c3 are used for the wave eqn coefficients
    * they have influence from gamma (wave decay)
+   * c4 is for diffusion equation, gamma controls rate of
+   * diffusion (conductivity or resistivity)
    */
   , c1 = 2 - gamma * dt
   , c2 = gamma * dt - 1
   , c3 = (dt*dt * vel*vel) / (dx*dx)
   , c4 = gamma * dt / (dx * dx)
 
-  /* 
+  setResolution(vres, hres)
+
+  /*
    * Solves the wave equation PDE
    * using convolution.
    */
@@ -505,7 +511,7 @@ module.exports = function pdeEngine(spec) {
   /*
    * Solves the diffusion equation PDE
    * using convolution.
-   */ 
+   */
   function diffusionUpdate () {
     var row, col, ind
     var dum = conv2(u, coeffs)
@@ -578,9 +584,9 @@ module.exports = function pdeEngine(spec) {
  * this does basic checking then calls reset
  * to modify array sizes.
  */
-  function setResolution (hRes, wRes) {
-    width = wRes
-    height = hRes
+  function setResolution (vRes, hRes) {
+    width = hRes
+    height = vRes
     reset()
   }
 
@@ -715,10 +721,10 @@ function poissonUpdate () {
 
 });
 
-require.define("/node_modules/colorgrad/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"colorgrad.js"}
+require.define("/node_modules/colorgrad/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"index.js"}
 });
 
-require.define("/node_modules/colorgrad/colorgrad.js",function(require,module,exports,__dirname,__filename,process,global){/*  colorgrad
+require.define("/node_modules/colorgrad/index.js",function(require,module,exports,__dirname,__filename,process,global){/*  colorgrad
  *
  * A simple way to build a hexadecimal or rgb color gradient
  *
@@ -898,7 +904,7 @@ module.exports = function (o) {
    * ARRAYMATH
    */
   return function(a, b) {
-    if(!isArray(a) || !isArray(b))
+    if(!Array.isArray(a) || !Array.isArray(b))
       throw new Error("arraymath inputs must be arrays.")
     var i, out = []
     if(a.length === 1) {
@@ -917,7 +923,7 @@ module.exports = function (o) {
       return out
     }
     else
-      throw new Error("Array lengths must be equal")
+      throw new Error("Vector dimensions must be equal or scalar vector product")
   }
 
   /*
@@ -928,21 +934,12 @@ module.exports = function (o) {
       var op = {
         "*": a * b
       , "+": a + b
-      ,"-": a - b
-      ,"/": a / b
+      , "-": a - b
+      , "/": a / b
       }
       return op[o]
     }
   }
-
-  /*
-   * ISARRAY
-   */
-  function isArray(v) {
-    return Object.prototype.toString.call(v) === "[object Array]";
-  }
-
-
 }
 
 
@@ -973,8 +970,6 @@ module.exports = function (spec) {
   spec.colormap = spec.colormap || "jet"
   spec.nshades = spec.nshades || 72
   spec.format = spec.format || "hex"
-
-
 
 
   /*
@@ -1171,6 +1166,14 @@ module.exports = function (spec) {
     var key = ['r', 'g', 'b']
     for (var i = 0; i < 3; i++) {
       /*
+       * Check inputs
+       */
+       if (cmap[key[i]][0].length > spec.nshades) {
+          throw new Error(spec.colormap + 
+            ' map requires nshades to be at least size ' + cmap[key[i]][0].length)
+       }
+
+      /*
        * map x axis point from 0->1 to 0 -> n 
        */
        div = cmap[key[i]][0].map(function(x) { return x * n }).map( Math.round )
@@ -1203,16 +1206,13 @@ require.define("/node_modules/colormap/node_modules/arraytools/package.json",fun
 });
 
 require.define("/node_modules/colormap/node_modules/arraytools/index.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
-module.exports = function () {
+
+var arraytools  = function () {
 
   var that = {}
 
-  function isArray (v) {
-    return Object.prototype.toString.call(v) === "[object Array]"
-  }
-   
   function isObj (v) {
-    return (v != null) && (typeof v === 'object') && !isArray(v)
+    return (v != null) && (typeof v === 'object') && !Array.isArray(v)
   }
 
   function linspace (start, end, num) {
@@ -1231,7 +1231,7 @@ module.exports = function () {
   }
 
   function zip3 (a, b, c) {
-      var len = Math.min.apply(null, [a.length, b.length, c.length]) 
+      var len = Math.min.apply(null, [a.length, b.length, c.length])
       var result = []
       for (var n = 0; n < len; n++) {
           result.push([a[n], b[n], c[n]])
@@ -1239,15 +1239,34 @@ module.exports = function () {
       return result
   }
 
-that.isArray = isArray
-that.isObj = isObj
-that.linspace = linspace
-that.graph = graph
-that.zip3 = zip3
+  function sum (A) {
+    var acc = 0
+    accumulate(A, acc)
+    function accumulate(x) {
+      for (var i = 0; i < x.length; i++) {
+        if (Array.isArray(x[i]))
+          accumulate(x[i], acc)
+        else
+          acc += x[i]
+      }
+    }
+    return acc
+  }
 
-return that
+
+
+  that.isObj = isObj
+  that.linspace = linspace
+  that.graph = graph
+  that.zip3 = zip3
+  that.sum = sum
+
+  return that
 
 }
+
+
+module.exports = arraytools()
 });
 
 require.define("/entry.js",function(require,module,exports,__dirname,__filename,process,global){"use strict";
