@@ -29,53 +29,56 @@ require('domready')(function () {
   , intID = []
 
 
-// This turns on and off button selected class for animations
+  /*
+   *  This turns on and off button selected class for animations
+   */
   var categories = nodeArray(document.querySelectorAll('.category'))
+  var unselector = curry(toggleClass, 'selected', false)
+  var selector = curry(toggleClass, 'selected', true)
 
   categories.forEach(function (category) {
     category.addEventListener('click', function () {
-      // See if clicked elem is selected
-      var index = toggleClass('selected', null, category)
-      // Unselect all categories
-      var unselector = curry(toggleClass, 'selected', false)
-      categories.map(unselector)
-      // Reselect or leave unselected depending on the prior state
-      // of the elem that was clicked
-      toggleClass('selected', index === -1, category)
-      // Toggle class of corrisponding connector to get CSS animations
-      toggleClass('selected',
-                  index === -1,
-                  document.querySelector('.connector.' + category.id)
-                 )
+      // See if clicked elem is now selected
+      var toggled = toggleClass('selected', null, category)
+      // Unselect all selected
+      nodeArray(document.querySelectorAll('.selected')).map(unselector)
+      if (toggled) {
+        // Reselect all elems with class === category ID if category was selected
+        nodeArray(document.querySelectorAll("." + category.id)).map(selector)
+        toggleClass('selected', true, category)
+      }
     })
   })
-
+  /*
+   * Ugly code to turn mode buttons into toggle switches
+   */
   var modes = nodeArray(document.querySelectorAll('.mode'))
+  var unselector2 = curry(toggleClass, 'selectedII', false)
+  var selector2 = curry(toggleClass, 'selectedII', true)
+
   modes.forEach(function (mode) {
     mode.addEventListener('click', function () {
-      var index = toggleClass('selectedII', null, mode)
-      var unselector = curry(toggleClass, 'selectedII', false)
-      modes.map(unselector)
-      toggleClass('selectedII', index === -1, mode)
-      toggleClass('selectedII',
-                  index === -1,
-                  document.querySelector('.modeinfo.' + mode.id)
-                 )
+      // See if clicked elem is now selected
+      var toggled = toggleClass('selectedII', null, mode)
+      // Unselect all selected
+      nodeArray(document.querySelectorAll('.selectedII')).map(unselector2)
+      if (toggled) {
+        // Reselect all elems with class === category ID if category was selected
+        nodeArray(document.querySelectorAll("." + mode.id)).map(selector2)
+        toggleClass('selectedII', true, mode)
       // Start up appropriate physics mode
-      switch(mode.id) {
-        case "mode1":
-        waveEqnMode();
-        break;
-        case "mode2":
-        diffusionEqnMode();
-        break;
-        case "mode3":
-        noMode();
-        break;
-        default:
-        noMode();
-      } // end switch
-    }) // end mode click
+        switch(mode.id) {
+          case "mode1":
+          waveEqnMode();
+          break;
+          case "mode2":
+          diffusionEqnMode();
+          break;
+          default:
+          noMode();
+        }
+      }
+    })
   })
 
 
@@ -124,7 +127,9 @@ require('domready')(function () {
 
   }
 
-
+  /*
+   * Wave Equation Mode
+   */
 
   function waveEqnMode() {
     clearMode()
@@ -164,9 +169,14 @@ require('domready')(function () {
     // Start Animation
     intID[0] = setInterval(renderField, 30)
 
-  } // END WAVEEQNMODE
+  }
 
 
+
+
+  /*
+   * Diffusion Equation Mode
+   */
   function diffusionEqnMode() {
     clearMode()
 
@@ -189,7 +199,6 @@ require('domready')(function () {
 
 
     function tracedrops() {
-      console.log(xpix, ypix)
       if (xpix) {
         field.addSource( (ypix / ylen) | 0, (xpix / xlen) | 0, field.mag)
         dropletStream.write( {
@@ -213,7 +222,9 @@ require('domready')(function () {
 
 
 
-  // Default mode when engine not engaged.
+  /*
+   * No Mode!
+   */
   function noMode() {
     clearMode()
     resetScreen()
@@ -221,9 +232,10 @@ require('domready')(function () {
 
 
 
-// If any event newDroplet, it acts no matter the mode!
+  /*
+   * Server rerouted external Client events
+   */
     mx.on('connection', function (conn) {
-
 
       if (conn.meta === "client-droplet") {
 
@@ -237,8 +249,10 @@ require('domready')(function () {
     })
 
 
-  // Draw Canvas /////////////////////////////////////////////////////////////////
 
+  /*
+   * Draw Canvas
+   */
   function renderField () {
     var row, col, ind
       , f = field.update()
@@ -266,14 +280,23 @@ function nodeArray (nodelist) {
 
 
 function toggleClass (className, bool, elem) {
+  /*
+   * Toggles class on or off depending on its state
+   * If "bool" is true: Only toggles to "on" state
+   * If "bool" is false: Only toggles class off.
+   * Set "bool" to null to get usual behaviour
+   */
   var index = elem.className.indexOf(className)
   if ( (index >= 0) && (bool !== true) ) {
     elem.className = cut(elem.className, index, index + className.length)
     if (elem.className.slice(-1) === ' ')
       elem.className = elem.className.slice(0, -1)
+    index = false
   }
-  else if ( (index < 0) && (bool !== false) )
+  else if ( (index < 0) && (bool !== false) ) {
     elem.className = elem.className ? (elem.className + " " + className) : className
+    index = true
+  }
 
   return index
 }
@@ -4952,7 +4975,7 @@ WS.prototype.check = function(){
 };
 
 
-},{"../transport":27,"../util":25,"debug":29,"ws":39,"engine.io-parser":24}],39:[function(require,module,exports){
+},{"../transport":27,"../util":25,"ws":39,"debug":29,"engine.io-parser":24}],39:[function(require,module,exports){
 (function(global){/// shim for browser packaging
 
 module.exports = function() {
@@ -5176,5 +5199,5 @@ Polling.prototype.uri = function(){
 };
 
 })()
-},{"../transport":27,"../util":25,"engine.io-parser":24,"debug":29}]},{},[2])
+},{"../transport":27,"../util":25,"debug":29,"engine.io-parser":24}]},{},[2])
 ;
