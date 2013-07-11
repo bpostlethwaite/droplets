@@ -1,0 +1,11 @@
+<h1>Droplets</h1>
+<p>A demonstration website which serves as my personal site for now.</p>
+<p>The backend computations handling the wave-field physics are written in javascript and solve the wave equation PDE using the finite-difference Euler Method. The module that solves the physics is called <a href="https://github.com/bpostlethwaite/pde-engine">pde-engine</a> which I have published to <a href="https://npmjs.org/">npm</a>. The transparent overlay animations are all CSS3. Websockets connect the server to clients and employs a broadcast facility to register droplets clicked by a single user to all clients simultaneously. The server also parses markdown files which hold the site content into html and streams this data to the client upon connection.</p>
+<p><em>The website runs best on Chrome.</em></p>
+<h3>Todo</h3>
+<ol>
+<li>Test CSS3 animations with IE</li>
+<li>xlen and ylen resolution sizes should be dependent on overall screen size. Smaller screen sizes can computationally afford better resolutions.</li>
+<li>Finish coding and implementing the Poisson Equation (gravity and electrostatics)</li>
+</ol>
+

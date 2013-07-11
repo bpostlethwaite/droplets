@@ -1,17 +1,19 @@
 "use strict";
 
-
 var engine = require('pde-engine')
-  , poissonEngine = require('./poissonSolver.js')
   , cg = require('colorgrad')()
   , cmap = require('colormap')
+  , MuxDemux = require('mux-demux')
+  , fs = require('fs')
+  , mx = MuxDemux()
+  , estream = require("engine.io-stream")("/droplets")
 
-$(document).ready(function() {
-  var socket = io.connect("wss://droplets.jit.su")
-  //var socket = io.connect("http://droplets.benjp.c9.io")
-  //var socket = io.connect("192.168.1.113")
+estream.pipe(mx).pipe(estream)
 
-  , field = engine()
+
+require('domready')(function () {
+
+  var field = engine()
   , canvas = document.getElementById('canvas')
   , c = canvas.getContext('2d')
   , xlen = 12
@@ -24,89 +26,111 @@ $(document).ready(function() {
 
 
 // This turns on and off button selected class for animations
-  $(".category").click(function() {
-    //turn of all previously selected
-    $('.selected').not(this).removeClass('selected')
-    // Toggle this buttons class.
-    $(this).toggleClass('selected')
-    // If it wasn't previously selected then continue and engage.
-    if ( $(this).hasClass('selected') ) {
-      //find matching classes associated w/ ID
-      $("."+ $(this).attr('id') ).addClass('selected')
-    }
-  }) // end click
+  var categories = nodeArray(document.querySelectorAll('.category'))
 
-// This turns on and off button selected class for mode info text
-  $(".mode").click(function() {
-    var mode = null
-    //turn of all previously selected
-    $('.selectedII').not(this).removeClass('selectedII')
-    // Toggle this buttons class.
-    $(this).toggleClass('selectedII')
-    // If it wasn't previously selected then continue and engage.
-    if ( $(this).hasClass('selectedII') ) {
-      // get mode ID
-      mode = $(this).attr('id')
-      //find matching classes associated w/ ID
-      $("." + mode).addClass('selectedII')
-    }
-    // Start up appropriate physics mode
-    switch(mode) {
-      case "mode1":
+  categories.forEach(function (category) {
+    category.addEventListener('click', function () {
+      // See if clicked elem is selected
+      var index = toggleClass('selected', null, category)
+      // Unselect all categories
+      var unselector = curry(toggleClass, 'selected', false)
+      categories.map(unselector)
+      // Reselect or leave unselected depending on the prior state
+      // of the elem that was clicked
+      toggleClass('selected', index === -1, category)
+      // Toggle class of corrisponding connector to get CSS animations
+      toggleClass('selected',
+                  index === -1,
+                  document.querySelector('.connector.' + category.id)
+                 )
+    })
+  })
+  /*
+   * Ugly code to turn mode buttons into toggle switches
+   */
+  var modes = nodeArray(document.querySelectorAll('.mode'))
+  modes.forEach(function (mode) {
+    mode.addEventListener('click', function () {
+      var index = toggleClass('selectedII', null, mode)
+      var unselector = curry(toggleClass, 'selectedII', false)
+      modes.map(unselector)
+      toggleClass('selectedII', index === -1, mode)
+      toggleClass('selectedII',
+                  index === -1,
+                  document.querySelector('.modeinfo.' + mode.id)
+                 )
+      // Start up appropriate physics mode
+      switch(mode.id) {
+        case "mode1":
         waveEqnMode();
         break;
-      case "mode2":
+        case "mode2":
         diffusionEqnMode();
         break;
-      case "mode3":
+        case "mode3":
         noMode();
         break;
-      default:
+        default:
         noMode();
-    } // end switch
-  }) // end mode click
-
-
-
-// CONTENT SOCKETS /////////////////////////////////////////////////
-  socket.on('readme', function(data) {
-    $('.content.tog3').html(data)
+      } // end switch
+    }) // end mode click
   })
-  socket.on('cv', function(data) {
-    $('.content.tog4').html(data)
-  })
+
+
+
+
+// CONTENT ////////////////////////////////////////////////////////
+
+  var readme = document.querySelector(".content.tog3")
+  var resume = document.querySelector(".content.tog4")
+
+  readme.innerHTML = fs.readFileSync(__dirname + '/docs/readme.html')
+  resume.innerHTML = fs.readFileSync(__dirname + '/docs/resume.html')
 
 // MODE FUNCTIONS ///////////////////////////////////////////////////
+
+
+
 
   // Function called on window resize which resets both canvas dims
   // as well as calling physics engine resize method.
   // Also acts as a general clearing house.
   function resetScreen() {
-    $(window).resize(function(e) {
+    window.onresize = function(e) {
       rows = Math.floor(window.innerHeight / xlen)
       cols = Math.floor(window.innerWidth / ylen)
       field.setResolution(rows, cols)
       canvas.width  = window.innerWidth
       canvas.height = window.innerHeight
       //field.s = buildSprites(10)
-    })
-    $(window).trigger('resize')
+    }
+    window.onresize()
   }
+
+
+
 
   // Function to clear previous bindings and interval
   // timers from previously selected modes
-  function clearMode() {
+  function clearMode(type, fn) {
     var i
-    $(canvas).unbind("mousemove")
-    $(canvas).unbind("click")
+    listeners.removeAllListeners()
+
     for (i = 0; i < intID.length; i++) {
       clearInterval(intID[i])
     }
 
   }
 
+  /*
+   * Wave Equation Mode
+   */
+
   function waveEqnMode() {
     clearMode()
+
+    var dropletStream = mx.createWriteStream("dropletStream")
+
     field = engine( {
       dt: 0.1
     , gamma: 0.02
@@ -121,15 +145,17 @@ $(document).ready(function() {
     field.mag = 15
 
     // Bind Click Events /////////////////////////////////////
-    $(canvas).bind("click", function(evt) {
-        var xp = evt.pageX
-          , yp = evt.pageY
-      socket.emit('clientDroplet',{
-          x: xp / window.innerWidth // turn into percentage
-        , y: yp / window.innerHeight // before sending
-        })
+
+    listeners.addListener(canvas, "click", function (evt) {
+      var xp = evt.pageX
+        , yp = evt.pageY
+      dropletStream.write( {
+        x: xp / window.innerWidth // turn into percentage
+      , y: yp / window.innerHeight // before sending
+      })
       field.addSource( (yp / ylen) | 0 , (xp / xlen) | 0 , field.mag)
     })
+
     // Set render configurations
     field.scale = 10
     field.maxval = 40 // +/-
@@ -138,11 +164,19 @@ $(document).ready(function() {
     // Start Animation
     intID[0] = setInterval(renderField, 30)
 
-    } // END WAVEEQNMODE
+  }
 
 
+
+
+  /*
+   * Diffusion Equation Mode
+   */
   function diffusionEqnMode() {
     clearMode()
+
+    var dropletStream = mx.createWriteStream("dropletStream")
+
     field = engine( {
       dt: 0.1
     , eqn: "diffusion"
@@ -151,7 +185,7 @@ $(document).ready(function() {
     resetScreen()
     field.mag = 30
     // Click Binding //////////////////////////////////////////
-    $(canvas).bind("mousemove", function(evt) {
+    listeners.addListener(canvas, "mousemove", function (evt) {
       xpix = evt.pageX
       ypix = evt.pageY
     })
@@ -160,14 +194,16 @@ $(document).ready(function() {
 
 
     function tracedrops() {
+      console.log(xpix, ypix)
       if (xpix) {
         field.addSource( (ypix / ylen) | 0, (xpix / xlen) | 0, field.mag)
-        socket.emit('clientDroplet', {
+        dropletStream.write( {
           x: xpix / window.innerWidth
         , y: ypix / window.innerHeight
         })
       }
     }
+
 
     // Set render configurations
     field.scale = 10
@@ -180,40 +216,11 @@ $(document).ready(function() {
   } // END DIFFUSIONEQMODE
 
 
-  function poissonEqnMode() {
-    $(window).trigger('resize')
-    xpix = 0.5*Math.round(window.innerWidth)
-    ypix= 0.5*Math.round(window.innerHeight)
-    // Click Binding //////////////////////////////////////////
-    $(canvas).unbind() // get rid of previous bindings
-    $(canvas).dblclick(function(evt) {
-        var xpix = evt.pageX
-          , ypix = evt.pageY
-      field.addSource( (ypix / ylen) | 0 , (xpix / xlen) | 0 )
-    })
-
-    $(canvas).mousemove(function(e){
-      xpix = e.pageY // yes this is confusing but I like my x dir up and down = height
-      ypix = e.pageX
-    })
-
-    // Set renderField configurations
-    field.scale = 26
-    field.maxval = 80
-    field.adj = 0
-    field.cg = colorgrad
-    // set renderSprites config
-    field.m = 3
-    field.k = 1
-    field.dt = 0.1
-
-    // Start Animation
-    setInterval(renderSprites, 50)
-
-  } // END PoissonEqnMode
 
 
-  // Default mode when engine not engaged.
+  /*
+   * No Mode!
+   */
   function noMode() {
     clearMode()
     resetScreen()
@@ -221,16 +228,27 @@ $(document).ready(function() {
 
 
 
-// If any event newDroplet, it acts no matter the mode!
-  socket.on('newDroplet', function(d) {
-      var yp = Math.round( d.y * window.innerHeight ) //recover from percentage
-        , xp = Math.round( d.x * window.innerWidth ) // to this user resolution
-      field.addSource( (yp / ylen) | 0, (xp / xlen) | 0 , field.mag)
+  /*
+   * Server rerouted external Client events
+   */
+    mx.on('connection', function (conn) {
+
+      if (conn.meta === "client-droplet") {
+
+        conn.on('data', function (d) {
+          var yp = Math.round( d.y * window.innerHeight ) //recover from percentage
+            , xp = Math.round( d.x * window.innerWidth ) // to this user resolution
+          field.addSource( (yp / ylen) | 0, (xp / xlen) | 0 , field.mag)
+        })
+
+      }
     })
 
 
-  // Draw Canvas /////////////////////////////////////////////////////////////////
 
+  /*
+   * Draw Canvas
+   */
   function renderField () {
     var row, col, ind
       , f = field.update()
@@ -246,72 +264,56 @@ $(document).ready(function() {
     }
   }
 
+})
 
-  function renderSprites () {
-  // Note F = ma & F = qE
-  // so we have field qE = ma and effect of other charges F = kq1q2(r1-r2)/r^2
-  // q1E + k*q1*q2/r^2 = ma
-  // So velocity change due to electric Field and other charges is:
-  // (q1E + k*q1*q2(r2-r1)/r^2)/m = dV/dt
-  // q1/m * (E + k*q2(r2-r1)/r^2) = dV/dt
-  // Where E = -grad(Potential)
-  // or E = -(X[i+1][j] - X[i][j])x -(X[i][j+1] - X[i][j])y
-  // q1 and q1 have been set as 1
-    var i, row, col, Ex, Ey, Fx, Fy, r, vx ,vy
-      , f = field.update()
 
-    // FIll OVER PREV SPRITES
-    c.fillStyle = "#000092"
-    for (i = 0; i < field.s.length; i++) {
-      c.beginPath()
-      c.arc(field.s[i].y, field.s[i].x, 11,0, Math.PI*2,true)
-      c.fill()
-      c.closePath()
-    }
+function nodeArray (nodelist) {
+  var nodeArray = []
+  for (var i = 0; i < nodelist.length; ++i)
+    nodeArray[i] = nodelist[i]
+  return nodeArray
+}
 
-    c.fillStyle = "#FFFF87"
-    for (i = 0; i < field.s.length; i++) {
-      // Change position according to velocity
-      field.s[i].x = Math.round(field.s[i].x + field.s[i].vx)
-      field.s[i].y = Math.round(field.s[i].y + field.s[i].vy)
-      if (field.s[i].x <= 1 || field.s[i].x >= canvas.height -xlen || field.s[i].y <= 1 || field.s[i].y >= canvas.width - ylen) {
-        field.s.splice(i,1)
-        continue
-      }
-      // Draw New Sprite position
-      c.beginPath()
-      c.arc(field.s[i].y, field.s[i].x, 10,0, Math.PI*2,true)
-      c.fill()
-      c.closePath()
-      // Update velocity
-      row = field.s[i].x/xlen | 0
-      col = field.s[i].y/ylen | 0
-      // E = -gradPotential
-      Ex = -(f[row + 1][col] - f[row][col])
-      Ey = -(f[row][col + 1] - f[row][col])
-      // Coulumbs law
-      r = Math.sqrt( (field.s[i].x - xpix)*(field.s[i].x - xpix) + (field.s[i].y - ypix)*(field.s[i].y - ypix) )
-      Fx = (r > 75) ? 0 : field.k*(field.s[i].x - xpix) / r
-      Fy = (r > 75) ? 0 : field.k*(field.s[i].y - ypix) / r
-      vx = (Ex + Fx) / field.m
-      vy = (Ey + Fy) / field.m
-      field.s[i].vx +=  vx/field.dt
-      field.s[i].vy += vy/field.dt
-    }
 
+function toggleClass (className, bool, elem) {
+  var index = elem.className.indexOf(className)
+  if ( (index >= 0) && (bool !== true) ) {
+    elem.className = cut(elem.className, index, index + className.length)
+    if (elem.className.slice(-1) === ' ')
+      elem.className = elem.className.slice(0, -1)
   }
+  else if ( (index < 0) && (bool !== false) )
+    elem.className = elem.className ? (elem.className + " " + className) : className
 
-  function buildSprites (n) {
-    var i, s = []
-    for (i = 0; i < n; i++) {
-      s[i] = {
-          x : 0.5*rows*xlen | 0
-        , y : 0.5 * cols*ylen | 0
-        , vx : Math.random() < 0.5 ? -1 : 1 * Math.random() * 3
-        , vy : Math.random() < 0.5 ? -1 : 1 * Math.random() * 3
-      }
-    }
-    return s
+  return index
+}
+
+function cut(str, cutStart, cutEnd){
+  return str.substr(0,cutStart) + str.substr(cutEnd+1)
+}
+
+var curry = function (fn) {
+  var slice = [].slice,
+      args = slice.call(arguments, 1)
+  return function () {
+    return fn.apply(this, args.concat(slice.call(arguments)))
   }
+}
 
-}) // end JQuery
+var listeners = {
+  list: []
+, addListener: function (elem, type, fn) {
+    elem.addEventListener(type, fn)
+    this.list.push({
+      "type": type
+    , "elem": elem
+    , "fn": fn
+    })
+  }
+, removeAllListeners: function () {
+    this.list.forEach( function (l) {
+      l.elem.removeEventListener(l.type, l.fn)
+    })
+    this.list = []
+  }
+}
