@@ -89,6 +89,14 @@ require('domready')(function () {
   readme.innerHTML = fs.readFileSync(__dirname + '/docs/readme.html')
   resume.innerHTML = fs.readFileSync(__dirname + '/docs/resume.html')
 
+
+// CONNECTOR POSITIONS //////////////////////////////////////////////
+  categories.forEach(function (category) {
+    var pos = category.getBoundingClientRect()
+    var connector = document.querySelector(".connector." + category.id)
+    connector.style.marginTop = Math.round(pos.top + 0.5 * pos.height) + "px"
+    console.log("setting connector " + category.id + " to " + (pos.top + 0.5 * pos.height))
+  })
 // MODE FUNCTIONS ///////////////////////////////////////////////////
 
 
@@ -351,4 +359,11 @@ var listeners = {
     })
     this.list = []
   }
+}
+
+function getPos(el) {
+  for (var lx=0, ly=0;
+       el != null;
+       lx += el.offsetLeft, ly += el.offsetTop, el = el.offsetParent)
+    return {x: lx,y: ly}
 }

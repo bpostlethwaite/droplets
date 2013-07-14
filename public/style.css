@@ -143,28 +143,11 @@ dd {
     background:#E3DD29 !important;
     width:0 !important;
     height:1px;
+    margin-left: -80px;
     padding: 0 0 !important;
 }
-.connector.tog1.selected {
-    margin: 171px 0 0 -80px;
-    -moz-animation:move 1s linear forwards;
-    -ms-animation:move 1s linear forwards;
-    -webkit-animation:move 1s linear forwards;
-}
-.connector.tog2.selected {
-    margin: 206px 0 0 -80px;
-    -moz-animation:move 1s linear forwards;
-    -ms-animation:move 1s linear forwards;
-    -webkit-animation:move 1s linear forwards;
-}
-.connector.tog3.selected {
-    margin: 240px 0 0 -80px;
-    -moz-animation:move 1s linear forwards;
-    -ms-animation:move 1s linear forwards;
-    -webkit-animation:move 1s linear forwards;
-}
-.connector.tog4.selected {
-    margin: 274px 0 0 -80px;
+
+.connector.selected {
     -moz-animation:move 1s linear forwards;
     -ms-animation:move 1s linear forwards;
     -webkit-animation:move 1s linear forwards;
