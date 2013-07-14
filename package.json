@@ -2,7 +2,7 @@
   "author": "Ben Postlethwaite <post.ben.here@gmail.com>",
   "name": "droplets",
   "description": "Personal website with nodejs pde-engine + canvas display",
-  "version": "0.5.2",
+  "version": "0.6.2",
   "homepage": "https://github.com/bpostlethwaite/droplets",
   "repository": {
     "type": "git",
@@ -14,16 +14,16 @@
     "colorgrad": ">=0.1",
     "colormap": ">=0.3.5",
     "st": "~0.2.1",
-    "engine.io-stream": "~0.3.1",
     "mux-demux": "~3.7.5",
-    "domready": "~0.2.11"
+    "domready": "~0.2.11",
+    "shoe": "0.0.x"
   },
   "devDependencies": {
     "printarray": ">=0.1"
   },
   "optionalDependencies": {},
   "engines": {
-    "node": ">=0.6"
+    "node": ">=0.8"
   },
   "subdomain": "droplets",
   "domains": [
