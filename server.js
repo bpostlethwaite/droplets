@@ -1,21 +1,21 @@
 "use strict";
 var st = require("st")
-  , EngineServer = require("engine.io-stream")
   , MuxDemux = require("mux-demux")
   , http = require("http")
-
+  , shoe = require('shoe')
 
 // Listen on port
 var PORT = 8082
 
 
 var server = http.createServer( serverHandler )
-var engine = EngineServer(socketHandler)
-engine.attach(server, "/droplets")
-
 server.listen(PORT, function() {
     console.log("Listening on port " + PORT)
 })
+
+var sock = shoe(socketHandler)
+sock.install(server, "/droplets")
+
 
 
 var staticOptions = {

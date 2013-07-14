@@ -6,9 +6,10 @@ var engine = require('pde-engine')
   , MuxDemux = require('mux-demux')
   , fs = require('fs')
   , mx = MuxDemux()
-  , estream = require("engine.io-stream")("/droplets")
+  , shoe = require('shoe')
 
-estream.pipe(mx).pipe(estream)
+var sockstream = shoe('/droplets')
+sockstream.pipe(mx).pipe(sockstream)
 
 
 require('domready')(function () {
@@ -270,8 +271,8 @@ require('domready')(function () {
    */
   (function () {
     document.querySelector("#mode1").click()
-    var t1 = 500
-    var t2 = 1500
+    var t1 = 250
+    var t2 = 1000
     var xmax = window.innerWidth
     var ymax = window.innerHeight
     var numdrops = 15
