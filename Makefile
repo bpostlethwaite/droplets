@@ -7,6 +7,10 @@ marked:
 bundle:
 	browserify -t brfs entry.js > public/bundle.js
 
+
+run: all
+	node server.js
+
 clean:
 	rm static/bundle.js
 	rm docs/*.html
