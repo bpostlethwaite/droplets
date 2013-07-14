@@ -264,6 +264,31 @@ require('domready')(function () {
     }
   }
 
+  /*
+   * Start Sequence
+   *
+   */
+  (function () {
+    document.querySelector("#mode1").click()
+    var t1 = 500
+    var t2 = 1500
+    var xmax = window.innerWidth
+    var ymax = window.innerHeight
+    var numdrops = 15
+
+    function rain () {
+      var time = Math.floor(Math.random() * (t2 - t1 + 1)) + t1
+      var x = Math.floor(Math.random() * (xmax - 2)) + 1
+      var y = Math.floor(Math.random() * (ymax - 2)) + 1
+      field.addSource( (y / ylen) | 0, (x / xlen) | 0 , field.mag)
+      if (--numdrops > 1)
+        setTimeout( rain, time)
+    }
+
+    rain()
+
+  })()
+
 })
 
 

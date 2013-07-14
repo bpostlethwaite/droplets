@@ -268,6 +268,31 @@ require('domready')(function () {
     }
   }
 
+  /*
+   * Start Sequence
+   *
+   */
+  (function () {
+    document.querySelector("#mode1").click()
+    var t1 = 500
+    var t2 = 1500
+    var xmax = window.innerWidth
+    var ymax = window.innerHeight
+    var numdrops = 15
+
+    function rain () {
+      var time = Math.floor(Math.random() * (t2 - t1 + 1)) + t1
+      var x = Math.floor(Math.random() * (xmax - 2)) + 1
+      var y = Math.floor(Math.random() * (ymax - 2)) + 1
+      field.addSource( (y / ylen) | 0, (x / xlen) | 0 , field.mag)
+      if (--numdrops > 1)
+        setTimeout( rain, time)
+    }
+
+    rain()
+
+  })()
+
 })
 
 
@@ -2125,11 +2150,7 @@ function MuxDemux (opts, onConnection) {
 } //inject
 
 
-},{"through":19,"xtend":20,"duplex":21}],13:[function(require,module,exports){
-
-module.exports =  require('./lib/');
-
-},{"./lib/":22}],19:[function(require,module,exports){
+},{"through":19,"xtend":20,"duplex":21}],19:[function(require,module,exports){
 (function(process){var Stream = require('stream')
 
 // through
@@ -2240,7 +2261,11 @@ function through (write, end, opts) {
 
 
 })(require("__browserify_process"))
-},{"stream":11,"__browserify_process":18}],20:[function(require,module,exports){
+},{"stream":11,"__browserify_process":18}],13:[function(require,module,exports){
+
+module.exports =  require('./lib/');
+
+},{"./lib/":22}],20:[function(require,module,exports){
 module.exports = extend
 
 function extend(target) {

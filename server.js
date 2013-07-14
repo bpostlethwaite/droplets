@@ -3,7 +3,6 @@ var st = require("st")
   , EngineServer = require("engine.io-stream")
   , MuxDemux = require("mux-demux")
   , http = require("http")
-  , emitStream = require("emit-stream")
 
 
 // Listen on port
