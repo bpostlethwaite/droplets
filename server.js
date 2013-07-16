@@ -1,6 +1,5 @@
 "use strict";
 var st = require("st")
-  , MuxDemux = require("mux-demux")
   , http = require("http")
   , shoe = require('shoe')
 
@@ -16,6 +15,12 @@ server.listen(PORT, function() {
 var sock = shoe(socketHandler)
 sock.install(server, "/droplets")
 
+var cstreams = {}
+
+server.on('connection', function (socket) {
+  var id = socket.remoteAddress + socket.remotePort
+  socket.on('close', removeID(id))
+})
 
 
 var staticOptions = {
@@ -32,32 +37,23 @@ function serverHandler(req, res) {
   return mount(req, res)
 }
 
+
 function socketHandler (stream) {
 
-  var mx = MuxDemux()
+  var id = stream.remoteAddress + stream.remotePort
+  cstreams[id] = stream
 
-  mx.on('error', function () {
-    stream.destroy()
+  stream.on('data', function (packet) {
+    Object.keys(cstreams).forEach( function (key) {
+      if (key !== id) cstreams[key].write(packet)
+      return
+    })
   })
-
-  stream.on('error', function () {
-    mx.destroy()
-  })
-
-  mx.on('connection', function (conn) {
+}
 
 
-    if (conn.meta === "dropletStream")
-      console.log("droplets!")
-
-      //
-      // Broadcast droplets
-      //
-      // conn.on('clientDroplet', function(data) {
-      //     socket.broadcast.emit('newDroplet', data)
-      //   }
-  })
-
-  mx.pipe(stream).pipe(mx)
-
+function removeID (id) {
+  return function (socket) {
+    delete cstreams[id]
+  }
 }

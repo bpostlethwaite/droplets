@@ -3,27 +3,42 @@
 var engine = require('pde-engine')
   , cg = require('colorgrad')()
   , cmap = require('colormap')
-  , MuxDemux = require('mux-demux')
   , fs = require('fs')
-  , mx = MuxDemux()
-  , shoe = require('shoe')
+//  , shoe = require('shoe')
+  , reconnect = require('reconnect/shoe')
+  , domready = require('domready')
 
-var sockstream = shoe('/droplets')
-sockstream.pipe(mx).pipe(sockstream)
-
-
-require('domready')(function () {
+domready( function () {
 
   var field = engine()
-  , canvas = document.getElementById('canvas')
-  , c = canvas.getContext('2d')
-  , xlen = 12
-  , ylen = 12
-  , rows
-  , cols
-  , xpix
-  , ypix
-  , intID = []
+    , canvas = document.getElementById('canvas')
+    , c = canvas.getContext('2d')
+    , xlen = 12
+    , ylen = 12
+    , rows
+    , cols
+    , xpix
+    , ypix
+    , intID = []
+    , stream
+
+  reconnect(function (restream) {
+    stream = restream
+
+
+    stream.on('data', function (d) {
+
+      try {
+        d = JSON.parse(d)
+      } catch (e) {return}
+
+      var yp = Math.round( d.y * window.innerHeight ) //recover from percentage
+        , xp = Math.round( d.x * window.innerWidth ) // to this user resolution
+
+      field.addSource( (yp / ylen) | 0, (xp / xlen) | 0 , field.mag)
+
+    })
+  }).connect("/droplets")
 
 
   /*
@@ -63,7 +78,7 @@ require('domready')(function () {
         // Reselect all elems with class === category ID if category was selected
         nodeArray(document.querySelectorAll("." + mode.id)).map(selector2)
         toggleClass('selectedII', true, mode)
-      // Start up appropriate physics mode
+        // Start up appropriate physics mode
         switch(mode.id) {
           case "mode1":
           waveEqnMode();
@@ -81,7 +96,7 @@ require('domready')(function () {
 
 
 
-// CONTENT ////////////////////////////////////////////////////////
+  // CONTENT ////////////////////////////////////////////////////////
 
   var readme = document.querySelector(".content.tog3")
   var resume = document.querySelector(".content.tog4")
@@ -90,17 +105,15 @@ require('domready')(function () {
   resume.innerHTML = fs.readFileSync(__dirname + '/docs/resume.html')
 
 
-// CONNECTOR POSITIONS //////////////////////////////////////////////
+  // CONNECTOR POSITIONS //////////////////////////////////////////////
   categories.forEach(function (category) {
     var pos = category.getBoundingClientRect()
     var connector = document.querySelector(".connector." + category.id)
     connector.style.marginTop = Math.round(pos.top + 0.5 * pos.height) + "px"
-    console.log("setting connector " + category.id + " to " + (pos.top + 0.5 * pos.height))
   })
-// MODE FUNCTIONS ///////////////////////////////////////////////////
 
 
-
+  // MODE FUNCTIONS ///////////////////////////////////////////////////
 
   // Function called on window resize which resets both canvas dims
   // as well as calling physics engine resize method.
@@ -132,14 +145,13 @@ require('domready')(function () {
 
   }
 
+
   /*
    * Wave Equation Mode
    */
 
   function waveEqnMode() {
     clearMode()
-
-    var dropletStream = mx.createWriteStream("dropletStream")
 
     field = engine( {
       dt: 0.1
@@ -157,13 +169,12 @@ require('domready')(function () {
     // Bind Click Events /////////////////////////////////////
 
     listeners.addListener(canvas, "click", function (evt) {
-      var xp = evt.pageX
-        , yp = evt.pageY
-      dropletStream.write( {
-        x: xp / window.innerWidth // turn into percentage
-      , y: yp / window.innerHeight // before sending
-      })
-      field.addSource( (yp / ylen) | 0 , (xp / xlen) | 0 , field.mag)
+
+      stream.write( JSON.stringify({
+        x: evt.pageX / window.innerWidth // turn into percentage
+      , y: evt.pageY / window.innerHeight // before sending
+      }))
+      field.addSource( (evt.pageY / ylen) | 0 , (evt.pageX / xlen) | 0 , field.mag)
     })
 
     // Set render configurations
@@ -177,15 +188,11 @@ require('domready')(function () {
   }
 
 
-
-
   /*
    * Diffusion Equation Mode
    */
   function diffusionEqnMode() {
     clearMode()
-
-    var dropletStream = mx.createWriteStream("dropletStream")
 
     field = engine( {
       dt: 0.1
@@ -206,13 +213,12 @@ require('domready')(function () {
     function tracedrops() {
       if (xpix) {
         field.addSource( (ypix / ylen) | 0, (xpix / xlen) | 0, field.mag)
-        dropletStream.write( {
+        stream.write( JSON.stringify({
           x: xpix / window.innerWidth
         , y: ypix / window.innerHeight
-        })
+        }))
       }
     }
-
 
     // Set render configurations
     field.scale = 10
@@ -238,24 +244,6 @@ require('domready')(function () {
 
 
   /*
-   * Server rerouted external Client events
-   */
-    mx.on('connection', function (conn) {
-
-      if (conn.meta === "client-droplet") {
-
-        conn.on('data', function (d) {
-          var yp = Math.round( d.y * window.innerHeight ) //recover from percentage
-            , xp = Math.round( d.x * window.innerWidth ) // to this user resolution
-          field.addSource( (yp / ylen) | 0, (xp / xlen) | 0 , field.mag)
-        })
-
-      }
-    })
-
-
-
-  /*
    * Draw Canvas
    */
   function renderField () {
@@ -272,6 +260,8 @@ require('domready')(function () {
       }
     }
   }
+
+
 
   /*
    * Start Sequence
@@ -301,21 +291,31 @@ require('domready')(function () {
 })
 
 
+
+
+
+
+
+/*
+ * HELPER FUNCS //////////////////////////////////////////////////////////////
+ */
+
+
 function nodeArray (nodelist) {
   var nodeArray = []
-  for (var i = 0; i < nodelist.length; ++i)
-    nodeArray[i] = nodelist[i]
+      for (var i = 0; i < nodelist.length; ++i)
+               nodeArray[i] = nodelist[i]
   return nodeArray
 }
 
 
 function toggleClass (className, bool, elem) {
   /*
-   * Toggles class on or off depending on its state
-   * If "bool" is true: Only toggles to "on" state
-   * If "bool" is false: Only toggles class off.
-   * Set "bool" to null to get usual behaviour
-   */
+                 * Toggles class on or off depending on its state
+  * If "bool" is true: Only toggles to "on" state
+    * If "bool" is false: Only toggles class off.
+    * Set "bool" to null to get usual behaviour
+                                     */
   var index = elem.className.indexOf(className)
   if ( (index >= 0) && (bool !== true) ) {
     elem.className = cut(elem.className, index, index + className.length)
