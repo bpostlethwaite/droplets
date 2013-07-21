@@ -4,7 +4,7 @@ var st = require("st")
   , shoe = require('shoe')
 
 // Listen on port
-var PORT = 8082
+var PORT = 80
 
 
 var server = http.createServer( serverHandler )
