@@ -4,7 +4,6 @@ var engine = require('pde-engine')
   , cg = require('colorgrad')()
   , cmap = require('colormap')
   , fs = require('fs')
-//  , shoe = require('shoe')
   , reconnect = require('reconnect/shoe')
   , domready = require('domready')
 
@@ -22,6 +21,10 @@ domready( function () {
     , intID = []
     , stream
 
+
+  /*
+   * Apply reconnect logic
+   */
   reconnect(function (restream) {
     stream = restream
 
@@ -39,6 +42,7 @@ domready( function () {
 
     })
   }).connect("/droplets")
+
 
 
   /*
@@ -65,36 +69,95 @@ domready( function () {
    * Ugly code to turn mode buttons into toggle switches
    */
   var modes = nodeArray(document.querySelectorAll('.mode'))
-  var unselector2 = curry(toggleClass, 'selectedII', false)
-  var selector2 = curry(toggleClass, 'selectedII', true)
+  // var unselector2 = curry(toggleClass, 'selectedII', false)
+  // var selector2 = curry(toggleClass, 'selectedII', true)
 
-  modes.forEach(function (mode) {
-    mode.addEventListener('click', function () {
-      // See if clicked elem is now selected
-      var toggled = toggleClass('selectedII', null, mode)
-      // Unselect all selected
-      nodeArray(document.querySelectorAll('.selectedII')).map(unselector2)
-      if (toggled) {
-        // Reselect all elems with class === category ID if category was selected
-        nodeArray(document.querySelectorAll("." + mode.id)).map(selector2)
-        toggleClass('selectedII', true, mode)
-        // Start up appropriate physics mode
-        switch(mode.id) {
-          case "mode1":
-          waveEqnMode();
-          break;
-          case "mode2":
-          diffusionEqnMode();
-          break;
-          default:
-          noMode();
-        }
-      }
-    })
+  // modes.forEach(function (mode) {
+  //   mode.addEventListener('click', function () {
+  //     // See if clicked elem is now selected
+  //     var toggled = toggleClass('selectedII', null, mode)
+  //     // Unselect all selected
+  //     nodeArray(document.querySelectorAll('.selectedII')).map(unselector2)
+  //     if (toggled) {
+  //       // Reselect all elems with class === category ID if category was selected
+  //       nodeArray(document.querySelectorAll("." + mode.id)).map(selector2)
+  //       toggleClass('selectedII', true, mode)
+  //       // Start up appropriate physics mode
+  //       switch(mode.id) {
+  //         case "mode1":
+  //         waveEqnMode();
+  //         break;
+  //         case "mode2":
+  //         diffusionEqnMode();
+  //         break;
+  //         default:
+  //         noMode();
+  //       }
+  //     }
+  //   })
+  // })
+
+
+
+  var modetog = toggler('selectedII')
+  var i = 1
+  modes.forEach( function (mode) {
+    modetog.addToggle(mode, 'mode' + i++)
   })
 
+  function toggler (tag) {
 
+    var EventEmitter = require('events').EventEmitter
+    var unselector = curry(toggleClass, tag, false)
+    var selector = curry(toggleClass, tag, true)
 
+    var group = new EventEmitter
+    var toggles = []
+    var links = {}
+
+    function addToggle(node, classLink) {
+
+      var linkedNodes = nodeArray(document.querySelectorAll('.'+classLink))
+
+      node.addEventListener('click', function () {
+        var toggled = toggleClass(tag, null, node)
+        console.log(toggled)
+        if (toggled) {
+          group.emit('selected', node)
+          /*
+           * Unselect other nodes
+           */
+          toggles.map(unselector)
+          /*
+           * Reselect node
+           */
+          toggleClass(tag, true, node)
+          if (linkedNodes)
+            linkedNodes.map(selector)
+
+        }  else {
+
+          group.emit('unselected', node)
+          if (linkedNodes)
+            linkedNodes.map(unselector)
+        }
+      })
+
+      toggles.push(node)
+      return node
+    }
+
+    function updateNodes(node) {
+      toggles.forEach( function (toggle) {
+        if (toggle !== node)
+          toggleClass(tag, false, node)
+      })
+    }
+
+    group.toggles = toggles
+    group.addToggle = addToggle
+    return group
+  }
 
   // CONTENT ////////////////////////////////////////////////////////
 
@@ -166,7 +229,7 @@ domready( function () {
 
     field.mag = 15
 
-    // Bind Click Events /////////////////////////////////////
+    // Stream Click Events /////////////////////////////////////
 
     listeners.addListener(canvas, "click", function (evt) {
 
@@ -311,11 +374,11 @@ function nodeArray (nodelist) {
 
 function toggleClass (className, bool, elem) {
   /*
-                 * Toggles class on or off depending on its state
-  * If "bool" is true: Only toggles to "on" state
-    * If "bool" is false: Only toggles class off.
-    * Set "bool" to null to get usual behaviour
-                                     */
+   * Toggles class on or off depending on its state
+   * If "bool" is true: Only toggles to "on" state
+   * If "bool" is false: Only toggles class off.
+   * Set "bool" to null to get usual behaviour
+   */
   var index = elem.className.indexOf(className)
   if ( (index >= 0) && (bool !== true) ) {
     elem.className = cut(elem.className, index, index + className.length)

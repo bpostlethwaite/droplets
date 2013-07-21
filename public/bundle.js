@@ -2,15 +2,255 @@
 // nothing to see here... no file methods for the browser
 
 },{}],2:[function(require,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+
+process.nextTick = (function () {
+    var canSetImmediate = typeof window !== 'undefined'
+    && window.setImmediate;
+    var canPost = typeof window !== 'undefined'
+    && window.postMessage && window.addEventListener
+    ;
+
+    if (canSetImmediate) {
+        return function (f) { return window.setImmediate(f) };
+    }
+
+    if (canPost) {
+        var queue = [];
+        window.addEventListener('message', function (ev) {
+            if (ev.source === window && ev.data === 'process-tick') {
+                ev.stopPropagation();
+                if (queue.length > 0) {
+                    var fn = queue.shift();
+                    fn();
+                }
+            }
+        }, true);
+
+        return function nextTick(fn) {
+            queue.push(fn);
+            window.postMessage('process-tick', '*');
+        };
+    }
+
+    return function nextTick(fn) {
+        setTimeout(fn, 0);
+    };
+})();
+
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+}
+
+// TODO(shtylman)
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+
+},{}],3:[function(require,module,exports){
+(function(process){if (!process.EventEmitter) process.EventEmitter = function () {};
+
+var EventEmitter = exports.EventEmitter = process.EventEmitter;
+var isArray = typeof Array.isArray === 'function'
+    ? Array.isArray
+    : function (xs) {
+        return Object.prototype.toString.call(xs) === '[object Array]'
+    }
+;
+function indexOf (xs, x) {
+    if (xs.indexOf) return xs.indexOf(x);
+    for (var i = 0; i < xs.length; i++) {
+        if (x === xs[i]) return i;
+    }
+    return -1;
+}
+
+// By default EventEmitters will print a warning if more than
+// 10 listeners are added to it. This is a useful default which
+// helps finding memory leaks.
+//
+// Obviously not all Emitters should be limited to 10. This function allows
+// that to be increased. Set to zero for unlimited.
+var defaultMaxListeners = 10;
+EventEmitter.prototype.setMaxListeners = function(n) {
+  if (!this._events) this._events = {};
+  this._events.maxListeners = n;
+};
+
+
+EventEmitter.prototype.emit = function(type) {
+  // If there is no 'error' event listener then throw.
+  if (type === 'error') {
+    if (!this._events || !this._events.error ||
+        (isArray(this._events.error) && !this._events.error.length))
+    {
+      if (arguments[1] instanceof Error) {
+        throw arguments[1]; // Unhandled 'error' event
+      } else {
+        throw new Error("Uncaught, unspecified 'error' event.");
+      }
+      return false;
+    }
+  }
+
+  if (!this._events) return false;
+  var handler = this._events[type];
+  if (!handler) return false;
+
+  if (typeof handler == 'function') {
+    switch (arguments.length) {
+      // fast cases
+      case 1:
+        handler.call(this);
+        break;
+      case 2:
+        handler.call(this, arguments[1]);
+        break;
+      case 3:
+        handler.call(this, arguments[1], arguments[2]);
+        break;
+      // slower
+      default:
+        var args = Array.prototype.slice.call(arguments, 1);
+        handler.apply(this, args);
+    }
+    return true;
+
+  } else if (isArray(handler)) {
+    var args = Array.prototype.slice.call(arguments, 1);
+
+    var listeners = handler.slice();
+    for (var i = 0, l = listeners.length; i < l; i++) {
+      listeners[i].apply(this, args);
+    }
+    return true;
+
+  } else {
+    return false;
+  }
+};
+
+// EventEmitter is defined in src/node_events.cc
+// EventEmitter.prototype.emit() is also defined there.
+EventEmitter.prototype.addListener = function(type, listener) {
+  if ('function' !== typeof listener) {
+    throw new Error('addListener only takes instances of Function');
+  }
+
+  if (!this._events) this._events = {};
+
+  // To avoid recursion in the case that type == "newListeners"! Before
+  // adding it to the listeners, first emit "newListeners".
+  this.emit('newListener', type, listener);
+
+  if (!this._events[type]) {
+    // Optimize the case of one listener. Don't need the extra array object.
+    this._events[type] = listener;
+  } else if (isArray(this._events[type])) {
+
+    // Check for listener leak
+    if (!this._events[type].warned) {
+      var m;
+      if (this._events.maxListeners !== undefined) {
+        m = this._events.maxListeners;
+      } else {
+        m = defaultMaxListeners;
+      }
+
+      if (m && m > 0 && this._events[type].length > m) {
+        this._events[type].warned = true;
+        console.error('(node) warning: possible EventEmitter memory ' +
+                      'leak detected. %d listeners added. ' +
+                      'Use emitter.setMaxListeners() to increase limit.',
+                      this._events[type].length);
+        console.trace();
+      }
+    }
+
+    // If we've already got an array, just append.
+    this._events[type].push(listener);
+  } else {
+    // Adding the second element, need to change to array.
+    this._events[type] = [this._events[type], listener];
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+EventEmitter.prototype.once = function(type, listener) {
+  var self = this;
+  self.on(type, function g() {
+    self.removeListener(type, g);
+    listener.apply(this, arguments);
+  });
+
+  return this;
+};
+
+EventEmitter.prototype.removeListener = function(type, listener) {
+  if ('function' !== typeof listener) {
+    throw new Error('removeListener only takes instances of Function');
+  }
+
+  // does not use listeners(), so no side effect of creating _events[type]
+  if (!this._events || !this._events[type]) return this;
+
+  var list = this._events[type];
+
+  if (isArray(list)) {
+    var i = indexOf(list, listener);
+    if (i < 0) return this;
+    list.splice(i, 1);
+    if (list.length == 0)
+      delete this._events[type];
+  } else if (this._events[type] === listener) {
+    delete this._events[type];
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.removeAllListeners = function(type) {
+  if (arguments.length === 0) {
+    this._events = {};
+    return this;
+  }
+
+  // does not use listeners(), so no side effect of creating _events[type]
+  if (type && this._events && this._events[type]) this._events[type] = null;
+  return this;
+};
+
+EventEmitter.prototype.listeners = function(type) {
+  if (!this._events) this._events = {};
+  if (!this._events[type]) this._events[type] = [];
+  if (!isArray(this._events[type])) {
+    this._events[type] = [this._events[type]];
+  }
+  return this._events[type];
+};
+
+})(require("__browserify_process"))
+},{"__browserify_process":2}],4:[function(require,module,exports){
 "use strict";
 
 var engine = require('pde-engine')
   , cg = require('colorgrad')()
   , cmap = require('colormap')
   , fs = require('fs')
-//  , shoe = require('shoe')
   , reconnect = require('reconnect/shoe')
   , domready = require('domready')
+  , EventEmitter = require('events').EventEmitter
 
 domready( function () {
 
@@ -26,6 +266,10 @@ domready( function () {
     , intID = []
     , stream
 
+
+  /*
+   * Apply reconnect logic
+   */
   reconnect(function (restream) {
     stream = restream
 
@@ -43,6 +287,7 @@ domready( function () {
 
     })
   }).connect("/droplets")
+
 
 
   /*
@@ -69,36 +314,94 @@ domready( function () {
    * Ugly code to turn mode buttons into toggle switches
    */
   var modes = nodeArray(document.querySelectorAll('.mode'))
-  var unselector2 = curry(toggleClass, 'selectedII', false)
-  var selector2 = curry(toggleClass, 'selectedII', true)
+  // var unselector2 = curry(toggleClass, 'selectedII', false)
+  // var selector2 = curry(toggleClass, 'selectedII', true)
 
-  modes.forEach(function (mode) {
-    mode.addEventListener('click', function () {
-      // See if clicked elem is now selected
-      var toggled = toggleClass('selectedII', null, mode)
-      // Unselect all selected
-      nodeArray(document.querySelectorAll('.selectedII')).map(unselector2)
-      if (toggled) {
-        // Reselect all elems with class === category ID if category was selected
-        nodeArray(document.querySelectorAll("." + mode.id)).map(selector2)
-        toggleClass('selectedII', true, mode)
-        // Start up appropriate physics mode
-        switch(mode.id) {
-          case "mode1":
-          waveEqnMode();
-          break;
-          case "mode2":
-          diffusionEqnMode();
-          break;
-          default:
-          noMode();
-        }
-      }
-    })
+  // modes.forEach(function (mode) {
+  //   mode.addEventListener('click', function () {
+  //     // See if clicked elem is now selected
+  //     var toggled = toggleClass('selectedII', null, mode)
+  //     // Unselect all selected
+  //     nodeArray(document.querySelectorAll('.selectedII')).map(unselector2)
+  //     if (toggled) {
+  //       // Reselect all elems with class === category ID if category was selected
+  //       nodeArray(document.querySelectorAll("." + mode.id)).map(selector2)
+  //       toggleClass('selectedII', true, mode)
+  //       // Start up appropriate physics mode
+  //       switch(mode.id) {
+  //         case "mode1":
+  //         waveEqnMode();
+  //         break;
+  //         case "mode2":
+  //         diffusionEqnMode();
+  //         break;
+  //         default:
+  //         noMode();
+  //       }
+  //     }
+  //   })
+  // })
+
+
+
+  var modetog = toggler('selectedII')
+  var i = 1
+  modes.forEach( function (mode) {
+    modetog.addToggle(mode, 'mode' + i++)
   })
 
+  function toggler (tag) {
 
+    var unselector = curry(toggleClass, tag, false)
+    var selector = curry(toggleClass, tag, true)
 
+    var group = new EventEmitter
+    var toggles = []
+    var links = {}
+
+    function addToggle(node, classLink) {
+
+      var linkedNodes = nodeArray(document.querySelectorAll('.'+classLink))
+
+      node.addEventListener('click', function () {
+        var toggled = toggleClass(tag, null, node)
+        console.log(toggled)
+        if (toggled) {
+          group.emit('selected', node)
+          /*
+           * Unselect other nodes
+           */
+          toggles.map(unselector)
+          /*
+           * Reselect node
+           */
+          toggleClass(tag, true, node)
+          if (linkedNodes)
+            linkedNodes.map(selector)
+
+        }  else {
+
+          group.emit('unselected', node)
+          if (linkedNodes)
+            linkedNodes.map(unselector)
+        }
+      })
+
+      toggles.push(node)
+      return node
+    }
+
+    function updateNodes(node) {
+      toggles.forEach( function (toggle) {
+        if (toggle !== node)
+          toggleClass(tag, false, node)
+      })
+    }
+
+    group.toggles = toggles
+    group.addToggle = addToggle
+    return group
+  }
 
   // CONTENT ////////////////////////////////////////////////////////
 
@@ -170,7 +473,7 @@ domready( function () {
 
     field.mag = 15
 
-    // Bind Click Events /////////////////////////////////////
+    // Stream Click Events /////////////////////////////////////
 
     listeners.addListener(canvas, "click", function (evt) {
 
@@ -315,11 +618,11 @@ function nodeArray (nodelist) {
 
 function toggleClass (className, bool, elem) {
   /*
-                 * Toggles class on or off depending on its state
-  * If "bool" is true: Only toggles to "on" state
-    * If "bool" is false: Only toggles class off.
-    * Set "bool" to null to get usual behaviour
-                                     */
+   * Toggles class on or off depending on its state
+   * If "bool" is true: Only toggles to "on" state
+   * If "bool" is false: Only toggles class off.
+   * Set "bool" to null to get usual behaviour
+   */
   var index = elem.className.indexOf(className)
   if ( (index >= 0) && (bool !== true) ) {
     elem.className = cut(elem.className, index, index + className.length)
@@ -372,7 +675,7 @@ function getPos(el) {
     return {x: lx,y: ly}
 }
 
-},{"fs":1,"reconnect/shoe":3,"pde-engine":4,"colorgrad":5,"colormap":6,"domready":7}],4:[function(require,module,exports){
+},{"fs":1,"events":3,"reconnect/shoe":5,"pde-engine":6,"colorgrad":7,"colormap":8,"domready":9}],6:[function(require,module,exports){
 /*  pde-engine
  *
  * A PDE solver for the wave and diffusion equations.
@@ -541,11 +844,11 @@ module.exports = function pdeEngine(spec) {
   return that
 }
 
-},{}],3:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 
 module.exports = require('./sock')
 
-},{"./sock":8}],7:[function(require,module,exports){
+},{"./sock":10}],9:[function(require,module,exports){
 /*!
   * domready (c) Dustin Diaz 2012 - License MIT
   */
@@ -601,7 +904,7 @@ module.exports = require('./sock')
       loaded ? fn() : fns.push(fn)
     })
 })
-},{}],5:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /*  colorgrad
  *
  * A simple way to build a hexadecimal or rgb color gradient
@@ -764,7 +1067,7 @@ module.exports = function () {
 
 }
 
-},{"./arraymath":9}],9:[function(require,module,exports){
+},{"./arraymath":11}],11:[function(require,module,exports){
 /*  arraymath
  *
  * simple array mathematic functions
@@ -823,7 +1126,7 @@ module.exports = function (o) {
 
 
 
-},{}],6:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /*
  * Ben Postlethwaite
  * January 2013
@@ -1095,7 +1398,7 @@ module.exports = function (spec) {
 
 }
 
-},{"arraytools":10}],10:[function(require,module,exports){
+},{"arraytools":12}],12:[function(require,module,exports){
 "use strict";
 
 var arraytools  = function () {
@@ -1150,7 +1453,7 @@ var arraytools  = function () {
 
 
 module.exports = arraytools()
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 
 var sock = require('sockjs-stream')
 
@@ -1164,247 +1467,7 @@ module.exports = require('./inject')(function (){
   return sock.apply(null, args)
 })
 
-},{"./inject":11,"sockjs-stream":12}],13:[function(require,module,exports){
-// shim for using process in browser
-
-var process = module.exports = {};
-
-process.nextTick = (function () {
-    var canSetImmediate = typeof window !== 'undefined'
-    && window.setImmediate;
-    var canPost = typeof window !== 'undefined'
-    && window.postMessage && window.addEventListener
-    ;
-
-    if (canSetImmediate) {
-        return function (f) { return window.setImmediate(f) };
-    }
-
-    if (canPost) {
-        var queue = [];
-        window.addEventListener('message', function (ev) {
-            if (ev.source === window && ev.data === 'process-tick') {
-                ev.stopPropagation();
-                if (queue.length > 0) {
-                    var fn = queue.shift();
-                    fn();
-                }
-            }
-        }, true);
-
-        return function nextTick(fn) {
-            queue.push(fn);
-            window.postMessage('process-tick', '*');
-        };
-    }
-
-    return function nextTick(fn) {
-        setTimeout(fn, 0);
-    };
-})();
-
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-}
-
-// TODO(shtylman)
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-
-},{}],14:[function(require,module,exports){
-(function(process){if (!process.EventEmitter) process.EventEmitter = function () {};
-
-var EventEmitter = exports.EventEmitter = process.EventEmitter;
-var isArray = typeof Array.isArray === 'function'
-    ? Array.isArray
-    : function (xs) {
-        return Object.prototype.toString.call(xs) === '[object Array]'
-    }
-;
-function indexOf (xs, x) {
-    if (xs.indexOf) return xs.indexOf(x);
-    for (var i = 0; i < xs.length; i++) {
-        if (x === xs[i]) return i;
-    }
-    return -1;
-}
-
-// By default EventEmitters will print a warning if more than
-// 10 listeners are added to it. This is a useful default which
-// helps finding memory leaks.
-//
-// Obviously not all Emitters should be limited to 10. This function allows
-// that to be increased. Set to zero for unlimited.
-var defaultMaxListeners = 10;
-EventEmitter.prototype.setMaxListeners = function(n) {
-  if (!this._events) this._events = {};
-  this._events.maxListeners = n;
-};
-
-
-EventEmitter.prototype.emit = function(type) {
-  // If there is no 'error' event listener then throw.
-  if (type === 'error') {
-    if (!this._events || !this._events.error ||
-        (isArray(this._events.error) && !this._events.error.length))
-    {
-      if (arguments[1] instanceof Error) {
-        throw arguments[1]; // Unhandled 'error' event
-      } else {
-        throw new Error("Uncaught, unspecified 'error' event.");
-      }
-      return false;
-    }
-  }
-
-  if (!this._events) return false;
-  var handler = this._events[type];
-  if (!handler) return false;
-
-  if (typeof handler == 'function') {
-    switch (arguments.length) {
-      // fast cases
-      case 1:
-        handler.call(this);
-        break;
-      case 2:
-        handler.call(this, arguments[1]);
-        break;
-      case 3:
-        handler.call(this, arguments[1], arguments[2]);
-        break;
-      // slower
-      default:
-        var args = Array.prototype.slice.call(arguments, 1);
-        handler.apply(this, args);
-    }
-    return true;
-
-  } else if (isArray(handler)) {
-    var args = Array.prototype.slice.call(arguments, 1);
-
-    var listeners = handler.slice();
-    for (var i = 0, l = listeners.length; i < l; i++) {
-      listeners[i].apply(this, args);
-    }
-    return true;
-
-  } else {
-    return false;
-  }
-};
-
-// EventEmitter is defined in src/node_events.cc
-// EventEmitter.prototype.emit() is also defined there.
-EventEmitter.prototype.addListener = function(type, listener) {
-  if ('function' !== typeof listener) {
-    throw new Error('addListener only takes instances of Function');
-  }
-
-  if (!this._events) this._events = {};
-
-  // To avoid recursion in the case that type == "newListeners"! Before
-  // adding it to the listeners, first emit "newListeners".
-  this.emit('newListener', type, listener);
-
-  if (!this._events[type]) {
-    // Optimize the case of one listener. Don't need the extra array object.
-    this._events[type] = listener;
-  } else if (isArray(this._events[type])) {
-
-    // Check for listener leak
-    if (!this._events[type].warned) {
-      var m;
-      if (this._events.maxListeners !== undefined) {
-        m = this._events.maxListeners;
-      } else {
-        m = defaultMaxListeners;
-      }
-
-      if (m && m > 0 && this._events[type].length > m) {
-        this._events[type].warned = true;
-        console.error('(node) warning: possible EventEmitter memory ' +
-                      'leak detected. %d listeners added. ' +
-                      'Use emitter.setMaxListeners() to increase limit.',
-                      this._events[type].length);
-        console.trace();
-      }
-    }
-
-    // If we've already got an array, just append.
-    this._events[type].push(listener);
-  } else {
-    // Adding the second element, need to change to array.
-    this._events[type] = [this._events[type], listener];
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.on = EventEmitter.prototype.addListener;
-
-EventEmitter.prototype.once = function(type, listener) {
-  var self = this;
-  self.on(type, function g() {
-    self.removeListener(type, g);
-    listener.apply(this, arguments);
-  });
-
-  return this;
-};
-
-EventEmitter.prototype.removeListener = function(type, listener) {
-  if ('function' !== typeof listener) {
-    throw new Error('removeListener only takes instances of Function');
-  }
-
-  // does not use listeners(), so no side effect of creating _events[type]
-  if (!this._events || !this._events[type]) return this;
-
-  var list = this._events[type];
-
-  if (isArray(list)) {
-    var i = indexOf(list, listener);
-    if (i < 0) return this;
-    list.splice(i, 1);
-    if (list.length == 0)
-      delete this._events[type];
-  } else if (this._events[type] === listener) {
-    delete this._events[type];
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.removeAllListeners = function(type) {
-  if (arguments.length === 0) {
-    this._events = {};
-    return this;
-  }
-
-  // does not use listeners(), so no side effect of creating _events[type]
-  if (type && this._events && this._events[type]) this._events[type] = null;
-  return this;
-};
-
-EventEmitter.prototype.listeners = function(type) {
-  if (!this._events) this._events = {};
-  if (!this._events[type]) this._events[type] = [];
-  if (!isArray(this._events[type])) {
-    this._events[type] = [this._events[type]];
-  }
-  return this._events[type];
-};
-
-})(require("__browserify_process"))
-},{"__browserify_process":13}],11:[function(require,module,exports){
+},{"./inject":13,"sockjs-stream":14}],13:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter
 var backoff = require('backoff')
 
@@ -1519,7 +1582,7 @@ function (createConnection) {
 
 }
 
-},{"events":14,"./widget":15,"backoff":16}],17:[function(require,module,exports){
+},{"events":3,"./widget":15,"backoff":16}],17:[function(require,module,exports){
 var protocolLess = /^\/\/[^\/]+\//
     , hasProtocol = /^https?:\/\//
     , hasSlash = /^\//
@@ -1539,7 +1602,7 @@ function normalizeUri(uri) {
     return uri
 }
 
-},{}],12:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var DataChannel = require('data-channel')
     , sockjs = require('sockjs-client')
 
@@ -4026,7 +4089,7 @@ Backoff.prototype.reset = function() {
 module.exports = Backoff;
 
 
-},{"events":14,"util":25}],24:[function(require,module,exports){
+},{"events":3,"util":25}],24:[function(require,module,exports){
 ;(function () {
 
 // bind a to b -- One Way Binding
@@ -4579,7 +4642,7 @@ exports.format = function(f) {
   return str;
 };
 
-},{"events":14}],21:[function(require,module,exports){
+},{"events":3}],21:[function(require,module,exports){
 /*
  * Copyright (c) 2012 Mathieu Turcotte
  * Licensed under the MIT license.
@@ -4816,7 +4879,7 @@ BackoffStrategy.prototype.reset_ = function() {
 module.exports = BackoffStrategy;
 
 
-},{"events":14,"util":25}],23:[function(require,module,exports){
+},{"events":3,"util":25}],23:[function(require,module,exports){
 var split = require('browser-split')
 var ClassList = require('class-list')
 var DataSet = require('data-set')
@@ -5100,7 +5163,7 @@ function Queue(stream) {
 }
 
 })(require("__browserify_process"))
-},{"__browserify_process":13}],27:[function(require,module,exports){
+},{"__browserify_process":2}],27:[function(require,module,exports){
 var Stream = require("readable-stream")
     , Queue = require("read-stream/lib/queue")
     , extend = require("xtend")
@@ -10348,7 +10411,7 @@ function endReadable(stream) {
 }
 
 })(require("__browserify_process"),require("__browserify_buffer").Buffer)
-},{"events":14,"stream":43,"util":25,"string_decoder":44,"__browserify_process":13,"__browserify_buffer":42}],43:[function(require,module,exports){
+},{"events":3,"stream":43,"util":25,"string_decoder":44,"__browserify_process":2,"__browserify_buffer":42}],43:[function(require,module,exports){
 var events = require('events');
 var util = require('util');
 
@@ -10469,7 +10532,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":14,"util":25}],44:[function(require,module,exports){
+},{"events":3,"util":25}],44:[function(require,module,exports){
 (function(Buffer){var StringDecoder = exports.StringDecoder = function(encoding) {
   this.encoding = (encoding || 'utf8').toLowerCase().replace(/[-_]/, '');
   switch (this.encoding) {
@@ -11300,7 +11363,7 @@ function endWritable(stream, state, cb) {
 }
 
 })(require("__browserify_process"),require("__browserify_buffer").Buffer)
-},{"util":25,"assert":45,"stream":43,"./_stream_duplex":39,"__browserify_process":13,"__browserify_buffer":42}],39:[function(require,module,exports){
+},{"util":25,"assert":45,"stream":43,"./_stream_duplex":39,"__browserify_process":2,"__browserify_buffer":42}],39:[function(require,module,exports){
 (function(process){// Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -11372,7 +11435,7 @@ function onend() {
 }
 
 })(require("__browserify_process"))
-},{"util":25,"./_stream_readable":37,"./_stream_writable":38,"__browserify_process":13}],40:[function(require,module,exports){
+},{"util":25,"./_stream_readable":37,"./_stream_writable":38,"__browserify_process":2}],40:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -13143,5 +13206,5 @@ SlowBuffer.prototype.writeDoubleBE = Buffer.prototype.writeDoubleBE;
 	module.exports.fromByteArray = uint8ToBase64;
 }());
 
-},{}]},{},[2])
+},{}]},{},[4])
 ;
