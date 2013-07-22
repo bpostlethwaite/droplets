@@ -2,11 +2,17 @@
 var st = require("st")
   , http = require("http")
   , shoe = require('shoe')
+  , MODE = process.argv[2]
+  , PORT
 
-// Listen on port
-var PORT = 80
-
-
+if (MODE == "-p")
+  PORT = 80
+else if (MODE == "-d")
+  PORT = 8080
+else {
+  console.log("Unknown flag, use -p for production or -d for development")
+  process.exit()
+}
 var server = http.createServer( serverHandler )
 server.listen(PORT, function() {
     console.log("Listening on port " + PORT)

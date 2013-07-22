@@ -6,6 +6,7 @@ var engine = require('pde-engine')
   , fs = require('fs')
   , reconnect = require('reconnect/shoe')
   , domready = require('domready')
+  , toggler = require('./toggler')
 
 domready( function () {
 
@@ -49,115 +50,20 @@ domready( function () {
    *  This turns on and off button selected class for animations
    */
   var categories = nodeArray(document.querySelectorAll('.category'))
-  var unselector = curry(toggleClass, 'selected', false)
-  var selector = curry(toggleClass, 'selected', true)
 
-  categories.forEach(function (category) {
-    category.addEventListener('click', function () {
-      // See if clicked elem is now selected
-      var toggled = toggleClass('selected', null, category)
-      // Unselect all selected
-      nodeArray(document.querySelectorAll('.selected')).map(unselector)
-      if (toggled) {
-        // Reselect all elems with class === category ID if category was selected
-        nodeArray(document.querySelectorAll("." + category.id)).map(selector)
-        toggleClass('selected', true, category)
-      }
-    })
+  var catog = toggler('selected')
+  var i = 1
+  categories.forEach( function (cat) {
+    catog.toggleNode(cat, 'tog' + i++)
   })
-  /*
-   * Ugly code to turn mode buttons into toggle switches
-   */
-  var modes = nodeArray(document.querySelectorAll('.mode'))
-  // var unselector2 = curry(toggleClass, 'selectedII', false)
-  // var selector2 = curry(toggleClass, 'selectedII', true)
-
-  // modes.forEach(function (mode) {
-  //   mode.addEventListener('click', function () {
-  //     // See if clicked elem is now selected
-  //     var toggled = toggleClass('selectedII', null, mode)
-  //     // Unselect all selected
-  //     nodeArray(document.querySelectorAll('.selectedII')).map(unselector2)
-  //     if (toggled) {
-  //       // Reselect all elems with class === category ID if category was selected
-  //       nodeArray(document.querySelectorAll("." + mode.id)).map(selector2)
-  //       toggleClass('selectedII', true, mode)
-  //       // Start up appropriate physics mode
-  //       switch(mode.id) {
-  //         case "mode1":
-  //         waveEqnMode();
-  //         break;
-  //         case "mode2":
-  //         diffusionEqnMode();
-  //         break;
-  //         default:
-  //         noMode();
-  //       }
-  //     }
-  //   })
-  // })
-
-
 
   var modetog = toggler('selectedII')
-  var i = 1
-  modes.forEach( function (mode) {
-    modetog.addToggle(mode, 'mode' + i++)
-  })
 
-  function toggler (tag) {
+  var mode1 = document.querySelector(".mode1")
+  var mode2 = document.querySelector(".mode2")
 
-    var EventEmitter = require('events').EventEmitter
-    var unselector = curry(toggleClass, tag, false)
-    var selector = curry(toggleClass, tag, true)
-
-    var group = new EventEmitter
-    var toggles = []
-    var links = {}
-
-    function addToggle(node, classLink) {
-
-      var linkedNodes = nodeArray(document.querySelectorAll('.'+classLink))
-
-      node.addEventListener('click', function () {
-        var toggled = toggleClass(tag, null, node)
-        console.log(toggled)
-        if (toggled) {
-          group.emit('selected', node)
-          /*
-           * Unselect other nodes
-           */
-          toggles.map(unselector)
-          /*
-           * Reselect node
-           */
-          toggleClass(tag, true, node)
-          if (linkedNodes)
-            linkedNodes.map(selector)
-
-        }  else {
-
-          group.emit('unselected', node)
-          if (linkedNodes)
-            linkedNodes.map(unselector)
-        }
-      })
-
-      toggles.push(node)
-      return node
-    }
-
-    function updateNodes(node) {
-      toggles.forEach( function (toggle) {
-        if (toggle !== node)
-          toggleClass(tag, false, node)
-      })
-    }
-
-    group.toggles = toggles
-    group.addToggle = addToggle
-    return group
-  }
+  modetog.toggleNode(mode1, 'mode1', setMode(waveEqnMode, clearMode))
+  modetog.toggleNode(mode2, 'mode2', setMode(diffusionEqnMode, clearMode))
 
   // CONTENT ////////////////////////////////////////////////////////
 
@@ -188,7 +94,6 @@ domready( function () {
       field.setResolution(rows, cols)
       canvas.width  = window.innerWidth
       canvas.height = window.innerHeight
-      //field.s = buildSprites(10)
     }
     window.onresize()
   }
@@ -205,7 +110,7 @@ domready( function () {
     for (i = 0; i < intID.length; i++) {
       clearInterval(intID[i])
     }
-
+    resetScreen()
   }
 
 
@@ -371,41 +276,6 @@ function nodeArray (nodelist) {
   return nodeArray
 }
 
-
-function toggleClass (className, bool, elem) {
-  /*
-   * Toggles class on or off depending on its state
-   * If "bool" is true: Only toggles to "on" state
-   * If "bool" is false: Only toggles class off.
-   * Set "bool" to null to get usual behaviour
-   */
-  var index = elem.className.indexOf(className)
-  if ( (index >= 0) && (bool !== true) ) {
-    elem.className = cut(elem.className, index, index + className.length)
-    if (elem.className.slice(-1) === ' ')
-      elem.className = elem.className.slice(0, -1)
-    index = false
-  }
-  else if ( (index < 0) && (bool !== false) ) {
-    elem.className = elem.className ? (elem.className + " " + className) : className
-    index = true
-  }
-
-  return index
-}
-
-function cut(str, cutStart, cutEnd){
-  return str.substr(0,cutStart) + str.substr(cutEnd+1)
-}
-
-var curry = function (fn) {
-  var slice = [].slice,
-      args = slice.call(arguments, 1)
-  return function () {
-    return fn.apply(this, args.concat(slice.call(arguments)))
-  }
-}
-
 var listeners = {
   list: []
 , addListener: function (elem, type, fn) {
@@ -423,6 +293,16 @@ var listeners = {
     this.list = []
   }
 }
+
+function setMode (onPass, onFail) {
+  return function (bool) {
+    if (bool)
+      onPass()
+    else
+      onFail()
+  }
+}
+
 
 function getPos(el) {
   for (var lx=0, ly=0;

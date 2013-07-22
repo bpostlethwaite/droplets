@@ -7,6 +7,7 @@ var engine = require('pde-engine')
   , fs = require('fs')
   , reconnect = require('reconnect/shoe')
   , domready = require('domready')
+  , toggler = require('./toggler')
 
 domready( function () {
 
@@ -50,115 +51,36 @@ domready( function () {
    *  This turns on and off button selected class for animations
    */
   var categories = nodeArray(document.querySelectorAll('.category'))
-  var unselector = curry(toggleClass, 'selected', false)
-  var selector = curry(toggleClass, 'selected', true)
 
-  categories.forEach(function (category) {
-    category.addEventListener('click', function () {
-      // See if clicked elem is now selected
-      var toggled = toggleClass('selected', null, category)
-      // Unselect all selected
-      nodeArray(document.querySelectorAll('.selected')).map(unselector)
-      if (toggled) {
-        // Reselect all elems with class === category ID if category was selected
-        nodeArray(document.querySelectorAll("." + category.id)).map(selector)
-        toggleClass('selected', true, category)
-      }
-    })
+  var catog = toggler('selected')
+  var i = 1
+  categories.forEach( function (cat) {
+    catog.toggleNode(cat, 'tog' + i++)
   })
-  /*
-   * Ugly code to turn mode buttons into toggle switches
-   */
-  var modes = nodeArray(document.querySelectorAll('.mode'))
-  // var unselector2 = curry(toggleClass, 'selectedII', false)
-  // var selector2 = curry(toggleClass, 'selectedII', true)
-
-  // modes.forEach(function (mode) {
-  //   mode.addEventListener('click', function () {
-  //     // See if clicked elem is now selected
-  //     var toggled = toggleClass('selectedII', null, mode)
-  //     // Unselect all selected
-  //     nodeArray(document.querySelectorAll('.selectedII')).map(unselector2)
-  //     if (toggled) {
-  //       // Reselect all elems with class === category ID if category was selected
-  //       nodeArray(document.querySelectorAll("." + mode.id)).map(selector2)
-  //       toggleClass('selectedII', true, mode)
-  //       // Start up appropriate physics mode
-  //       switch(mode.id) {
-  //         case "mode1":
-  //         waveEqnMode();
-  //         break;
-  //         case "mode2":
-  //         diffusionEqnMode();
-  //         break;
-  //         default:
-  //         noMode();
-  //       }
-  //     }
-  //   })
-  // })
-
-
 
   var modetog = toggler('selectedII')
-  var i = 1
-  modes.forEach( function (mode) {
-    modetog.addToggle(mode, 'mode' + i++)
-  })
 
-  function toggler (tag) {
+  var mode1 = document.querySelector(".mode1")
+  var mode2 = document.querySelector(".mode2")
 
-    var EventEmitter = require('events').EventEmitter
-    var unselector = curry(toggleClass, tag, false)
-    var selector = curry(toggleClass, tag, true)
 
-    var group = new EventEmitter
-    var toggles = []
-    var links = {}
+  function setMode (cb) {
+    return function (bool) {
+      if (bool) {
+        console.log("setting mode")
+        cb()
+      }
 
-    function addToggle(node, classLink) {
-
-      var linkedNodes = nodeArray(document.querySelectorAll('.'+classLink))
-
-      node.addEventListener('click', function () {
-        var toggled = toggleClass(tag, null, node)
-        console.log(toggled)
-        if (toggled) {
-          group.emit('selected', node)
-          /*
-           * Unselect other nodes
-           */
-          toggles.map(unselector)
-          /*
-           * Reselect node
-           */
-          toggleClass(tag, true, node)
-          if (linkedNodes)
-            linkedNodes.map(selector)
-
-        }  else {
-
-          group.emit('unselected', node)
-          if (linkedNodes)
-            linkedNodes.map(unselector)
-        }
-      })
-
-      toggles.push(node)
-      return node
+      else {
+        console.log("clearing mode")
+        clearMode()
+      }
     }
-
-    function updateNodes(node) {
-      toggles.forEach( function (toggle) {
-        if (toggle !== node)
-          toggleClass(tag, false, node)
-      })
-    }
-
-    group.toggles = toggles
-    group.addToggle = addToggle
-    return group
   }
+
+
+  modetog.toggleNode(mode1, 'mode1', setMode(waveEqnMode))
+  modetog.toggleNode(mode2, 'mode2', setMode(diffusionEqnMode))
 
   // CONTENT ////////////////////////////////////////////////////////
 
@@ -206,7 +128,7 @@ domready( function () {
     for (i = 0; i < intID.length; i++) {
       clearInterval(intID[i])
     }
-
+    resetScreen()
   }
 
 
@@ -372,41 +294,6 @@ function nodeArray (nodelist) {
   return nodeArray
 }
 
-
-function toggleClass (className, bool, elem) {
-  /*
-   * Toggles class on or off depending on its state
-   * If "bool" is true: Only toggles to "on" state
-   * If "bool" is false: Only toggles class off.
-   * Set "bool" to null to get usual behaviour
-   */
-  var index = elem.className.indexOf(className)
-  if ( (index >= 0) && (bool !== true) ) {
-    elem.className = cut(elem.className, index, index + className.length)
-    if (elem.className.slice(-1) === ' ')
-      elem.className = elem.className.slice(0, -1)
-    index = false
-  }
-  else if ( (index < 0) && (bool !== false) ) {
-    elem.className = elem.className ? (elem.className + " " + className) : className
-    index = true
-  }
-
-  return index
-}
-
-function cut(str, cutStart, cutEnd){
-  return str.substr(0,cutStart) + str.substr(cutEnd+1)
-}
-
-var curry = function (fn) {
-  var slice = [].slice,
-      args = slice.call(arguments, 1)
-  return function () {
-    return fn.apply(this, args.concat(slice.call(arguments)))
-  }
-}
-
 var listeners = {
   list: []
 , addListener: function (elem, type, fn) {
@@ -432,7 +319,7 @@ function getPos(el) {
     return {x: lx,y: ly}
 }
 
-},{"colorgrad":3,"colormap":4,"domready":6,"events":40,"fs":41,"pde-engine":7,"reconnect/shoe":36}],2:[function(require,module,exports){
+},{"./toggler":39,"colorgrad":3,"colormap":4,"domready":6,"fs":42,"pde-engine":7,"reconnect/shoe":36}],2:[function(require,module,exports){
 /*  arraymath
  *
  * simple array mathematic functions
@@ -1321,7 +1208,7 @@ function (createConnection) {
 
 }
 
-},{"./widget":38,"backoff":9,"events":40}],9:[function(require,module,exports){
+},{"./widget":38,"backoff":9,"events":41}],9:[function(require,module,exports){
 /*
  * Copyright (c) 2012 Mathieu Turcotte
  * Licensed under the MIT license.
@@ -1418,7 +1305,7 @@ Backoff.prototype.reset = function() {
 module.exports = Backoff;
 
 
-},{"events":40,"util":44}],11:[function(require,module,exports){
+},{"events":41,"util":45}],11:[function(require,module,exports){
 /*
  * Copyright (c) 2012 Mathieu Turcotte
  * Licensed under the MIT license.
@@ -1455,7 +1342,7 @@ ExponentialBackoffStrategy.prototype.reset_ = function() {
 module.exports = ExponentialBackoffStrategy;
 
 
-},{"./strategy":13,"util":44}],12:[function(require,module,exports){
+},{"./strategy":13,"util":45}],12:[function(require,module,exports){
 /*
  * Copyright (c) 2012 Mathieu Turcotte
  * Licensed under the MIT license.
@@ -1493,7 +1380,7 @@ FibonacciBackoffStrategy.prototype.reset_ = function() {
 module.exports = FibonacciBackoffStrategy;
 
 
-},{"./strategy":13,"util":44}],13:[function(require,module,exports){
+},{"./strategy":13,"util":45}],13:[function(require,module,exports){
 /*
  * Copyright (c) 2012 Mathieu Turcotte
  * Licensed under the MIT license.
@@ -1592,7 +1479,7 @@ BackoffStrategy.prototype.reset_ = function() {
 module.exports = BackoffStrategy;
 
 
-},{"events":40,"util":44}],14:[function(require,module,exports){
+},{"events":41,"util":45}],14:[function(require,module,exports){
 var split = require('browser-split')
 var ClassList = require('class-list')
 var DataSet = require('data-set')
@@ -2662,7 +2549,7 @@ function Queue(stream) {
 }
 
 })(require("__browserify_process"))
-},{"__browserify_process":49}],27:[function(require,module,exports){
+},{"__browserify_process":50}],27:[function(require,module,exports){
 (function(process){// Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -2734,7 +2621,7 @@ function onend() {
 }
 
 })(require("__browserify_process"))
-},{"./_stream_readable":29,"./_stream_writable":31,"__browserify_process":49,"util":44}],28:[function(require,module,exports){
+},{"./_stream_readable":29,"./_stream_writable":31,"__browserify_process":50,"util":45}],28:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -2777,7 +2664,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./_stream_transform":30,"util":44}],29:[function(require,module,exports){
+},{"./_stream_transform":30,"util":45}],29:[function(require,module,exports){
 (function(process,Buffer){// Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -3656,7 +3543,7 @@ function endReadable(stream) {
 }
 
 })(require("__browserify_process"),require("__browserify_Buffer").Buffer)
-},{"__browserify_Buffer":48,"__browserify_process":49,"events":40,"stream":42,"string_decoder":43,"util":44}],30:[function(require,module,exports){
+},{"__browserify_Buffer":49,"__browserify_process":50,"events":41,"stream":43,"string_decoder":44,"util":45}],30:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -3864,7 +3751,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./_stream_duplex":27,"util":44}],31:[function(require,module,exports){
+},{"./_stream_duplex":27,"util":45}],31:[function(require,module,exports){
 (function(process,Buffer){// Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -4214,7 +4101,7 @@ function endWritable(stream, state, cb) {
 }
 
 })(require("__browserify_process"),require("__browserify_Buffer").Buffer)
-},{"./_stream_duplex":27,"__browserify_Buffer":48,"__browserify_process":49,"assert":39,"stream":42,"util":44}],32:[function(require,module,exports){
+},{"./_stream_duplex":27,"__browserify_Buffer":49,"__browserify_process":50,"assert":40,"stream":43,"util":45}],32:[function(require,module,exports){
 exports = module.exports = require('./lib/_stream_readable.js');
 exports.Readable = exports;
 exports.Writable = require('./lib/_stream_writable.js');
@@ -6652,6 +6539,107 @@ module.exports = function (emitter) {
 }
 
 },{"hyperscript":14,"observable":22}],39:[function(require,module,exports){
+/*
+ * Ben Postlethwaite
+ * July 2013
+ * MIT
+ */
+
+module.exports = function (tag) {
+
+  var unselector = curry(toggleClass, tag, false)
+  var selector = curry(toggleClass, tag, true)
+
+  var group = []
+  var lnode = {}
+
+  function toggleNode(node, classLink, cb) {
+
+    var links = nodeArray(document.querySelectorAll('.'+classLink))
+    group.push({node:node, links:links})
+
+    node.addEventListener('click', function () {
+      var toggled = toggleClass(tag, null, node)
+
+      if (toggled) {
+
+        /*
+         * Unselect other nodes and their linked nodes
+         */
+        group.forEach( function (lnode) {
+          unselector(lnode.node)
+          lnode.links.map(unselector)
+        })
+        /*
+         * Reselect node and it's links
+         */
+        toggleClass(tag, true, node)
+        if (links)
+          links.map(selector)
+
+      }  else {
+        /*
+         * Unselect all linked nodes
+         */
+        if (links[node])
+          links.map(unselector)
+      }
+
+      /*
+       * If user supplied a callback, call it with toggled state
+       */
+      cb(toggled)
+    })
+  }
+
+  group.toggleNode = toggleNode
+  return group
+}
+
+
+function nodeArray (nodelist) {
+  var nodeArray = []
+      for (var i = 0; i < nodelist.length; ++i)
+               nodeArray[i] = nodelist[i]
+  return nodeArray
+}
+
+
+function toggleClass (className, bool, elem) {
+  /*
+   * Toggles class on or off depending on its state
+   * If "bool" is true: Only toggles to "on" state
+   * If "bool" is false: Only toggles class off.
+   * Set "bool" to null to get usual behaviour
+   */
+  var index = elem.className.indexOf(className)
+  if ( (index >= 0) && (bool !== true) ) {
+    elem.className = cut(elem.className, index, index + className.length)
+    if (elem.className.slice(-1) === ' ')
+      elem.className = elem.className.slice(0, -1)
+    index = false
+  }
+  else if ( (index < 0) && (bool !== false) ) {
+    elem.className = elem.className ? (elem.className + " " + className) : className
+    index = true
+  }
+
+  return index
+}
+
+function cut(str, cutStart, cutEnd){
+  return str.substr(0,cutStart) + str.substr(cutEnd+1)
+}
+
+var curry = function (fn) {
+  var slice = [].slice,
+      args = slice.call(arguments, 1)
+  return function () {
+    return fn.apply(this, args.concat(slice.call(arguments)))
+  }
+}
+
+},{}],40:[function(require,module,exports){
 (function(){// UTILITY
 var util = require('util');
 var Buffer = require("buffer").Buffer;
@@ -6968,7 +6956,7 @@ assert.doesNotThrow = function(block, /*optional*/error, /*optional*/message) {
 assert.ifError = function(err) { if (err) {throw err;}};
 
 })()
-},{"buffer":46,"util":44}],40:[function(require,module,exports){
+},{"buffer":47,"util":45}],41:[function(require,module,exports){
 (function(process){if (!process.EventEmitter) process.EventEmitter = function () {};
 
 var EventEmitter = exports.EventEmitter = process.EventEmitter;
@@ -7154,10 +7142,10 @@ EventEmitter.prototype.listeners = function(type) {
 };
 
 })(require("__browserify_process"))
-},{"__browserify_process":49}],41:[function(require,module,exports){
+},{"__browserify_process":50}],42:[function(require,module,exports){
 // nothing to see here... no file methods for the browser
 
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 var events = require('events');
 var util = require('util');
 
@@ -7278,7 +7266,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":40,"util":44}],43:[function(require,module,exports){
+},{"events":41,"util":45}],44:[function(require,module,exports){
 (function(Buffer){var StringDecoder = exports.StringDecoder = function(encoding) {
   this.encoding = (encoding || 'utf8').toLowerCase().replace(/[-_]/, '');
   switch (this.encoding) {
@@ -7442,7 +7430,7 @@ function base64DetectIncompleteChar(buffer) {
 }
 
 })(require("__browserify_Buffer").Buffer)
-},{"__browserify_Buffer":48}],44:[function(require,module,exports){
+},{"__browserify_Buffer":49}],45:[function(require,module,exports){
 var events = require('events');
 
 exports.isArray = isArray;
@@ -7795,7 +7783,7 @@ exports.format = function(f) {
   return str;
 };
 
-},{"events":40}],45:[function(require,module,exports){
+},{"events":41}],46:[function(require,module,exports){
 exports.readIEEE754 = function(buffer, offset, isBE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -7881,7 +7869,7 @@ exports.writeIEEE754 = function(buffer, value, offset, isBE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],46:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 (function(){var assert = require('assert');
 exports.Buffer = Buffer;
 exports.SlowBuffer = Buffer;
@@ -8965,7 +8953,7 @@ Buffer.prototype.writeDoubleBE = function(value, offset, noAssert) {
 };
 
 })()
-},{"./buffer_ieee754":45,"assert":39,"base64-js":47}],47:[function(require,module,exports){
+},{"./buffer_ieee754":46,"assert":40,"base64-js":48}],48:[function(require,module,exports){
 (function (exports) {
 	'use strict';
 
@@ -9051,7 +9039,7 @@ Buffer.prototype.writeDoubleBE = function(value, offset, noAssert) {
 	module.exports.fromByteArray = uint8ToBase64;
 }());
 
-},{}],48:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 require=(function(e,t,n,r){function i(r){if(!n[r]){if(!t[r]){if(e)return e(r);throw new Error("Cannot find module '"+r+"'")}var s=n[r]={exports:{}};t[r][0](function(e){var n=t[r][1][e];return i(n?n:e)},s,s.exports)}return n[r].exports}for(var s=0;s<r.length;s++)i(r[s]);return i})(typeof require!=="undefined"&&require,{1:[function(require,module,exports){
 // UTILITY
 var util = require('util');
@@ -12913,7 +12901,7 @@ SlowBuffer.prototype.writeDoubleBE = Buffer.prototype.writeDoubleBE;
 },{}]},{},[])
 ;;module.exports=require("buffer-browserify")
 
-},{}],49:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
