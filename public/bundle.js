@@ -58,29 +58,15 @@ domready( function () {
     catog.toggleNode(cat, 'tog' + i++)
   })
 
+  console.log(catog)
+
   var modetog = toggler('selectedII')
 
   var mode1 = document.querySelector(".mode1")
   var mode2 = document.querySelector(".mode2")
 
-
-  function setMode (cb) {
-    return function (bool) {
-      if (bool) {
-        console.log("setting mode")
-        cb()
-      }
-
-      else {
-        console.log("clearing mode")
-        clearMode()
-      }
-    }
-  }
-
-
-  modetog.toggleNode(mode1, 'mode1', setMode(waveEqnMode))
-  modetog.toggleNode(mode2, 'mode2', setMode(diffusionEqnMode))
+  modetog.toggleNode(mode1, 'mode1', setMode(waveEqnMode, clearMode))
+  modetog.toggleNode(mode2, 'mode2', setMode(diffusionEqnMode, clearMode))
 
   // CONTENT ////////////////////////////////////////////////////////
 
@@ -111,7 +97,6 @@ domready( function () {
       field.setResolution(rows, cols)
       canvas.width  = window.innerWidth
       canvas.height = window.innerHeight
-      //field.s = buildSprites(10)
     }
     window.onresize()
   }
@@ -119,8 +104,7 @@ domready( function () {
 
 
 
-  // Function to clear previous bindings and interval
-  // timers from previously selected modes
+  // CLEAR MODE  ///////////////////////////////////////////////////
   function clearMode(type, fn) {
     var i
     listeners.removeAllListeners()
@@ -132,10 +116,7 @@ domready( function () {
   }
 
 
-  /*
-   * Wave Equation Mode
-   */
-
+  // WAVE EQUATION  ///////////////////////////////////////////////////
   function waveEqnMode() {
     clearMode()
 
@@ -152,8 +133,9 @@ domready( function () {
 
     field.mag = 15
 
-    // Stream Click Events /////////////////////////////////////
-
+    /*
+     * Stream click events
+     */
     listeners.addListener(canvas, "click", function (evt) {
 
       stream.write( JSON.stringify({
@@ -174,9 +156,7 @@ domready( function () {
   }
 
 
-  /*
-   * Diffusion Equation Mode
-   */
+  // DIFFUSION EQUATION  ///////////////////////////////////////////////////
   function diffusionEqnMode() {
     clearMode()
 
@@ -187,7 +167,9 @@ domready( function () {
     })
     resetScreen()
     field.mag = 30
-    // Click Binding //////////////////////////////////////////
+    /*
+     * Click Binding
+     */
     listeners.addListener(canvas, "mousemove", function (evt) {
       xpix = evt.pageX
       ypix = evt.pageY
@@ -206,7 +188,6 @@ domready( function () {
       }
     }
 
-    // Set render configurations
     field.scale = 10
     field.maxval = 80
     field.adj = 0
@@ -214,13 +195,11 @@ domready( function () {
     // Start Animation
     intID[1] = setInterval(renderField, 50)
 
-  } // END DIFFUSIONEQMODE
-
-
+  }
 
 
   /*
-   * No Mode!
+   * No mode Mode
    */
   function noMode() {
     clearMode()
@@ -229,9 +208,7 @@ domready( function () {
 
 
 
-  /*
-   * Draw Canvas
-   */
+  // RENDER FIELD //////////////////////////////////////////
   function renderField () {
     var row, col, ind
       , f = field.update()
@@ -248,26 +225,29 @@ domready( function () {
   }
 
 
-
-  /*
-   * Start Sequence
-   *
-   */
+  // START SEQUENCE, POOR RAIN IMITATION //////////////////////////////////////////
   (function () {
-    document.querySelector("#mode1").click()
+    document.querySelector(".mode.mode1").click()
     var t1 = 250
-    var t2 = 1000
-    var xmax = window.innerWidth
-    var ymax = window.innerHeight
-    var numdrops = 15
+      , t2 = 1000
+      , xmax = window.innerWidth
+      , ymax = window.innerHeight
+      , numdrops = 18
+      , branch = true
 
     function rain () {
-      var time = Math.floor(Math.random() * (t2 - t1 + 1)) + t1
+
       var x = Math.floor(Math.random() * (xmax - 2)) + 1
-      var y = Math.floor(Math.random() * (ymax - 2)) + 1
+        , y = Math.floor(Math.random() * (ymax - 2)) + 1
       field.addSource( (y / ylen) | 0, (x / xlen) | 0 , field.mag)
-      if (--numdrops > 1)
-        setTimeout( rain, time)
+
+      if (--numdrops > 1) {
+        setTimeout( rain, Math.floor(Math.random() * (t2 - t1 + 1)) + t1)
+        if (branch === true) {
+          setTimeout( rain, Math.floor(Math.random() * (t2 - t1 + 1)) + t1)
+          branch = false
+        }
+      }
     }
 
     rain()
@@ -311,6 +291,16 @@ var listeners = {
     this.list = []
   }
 }
+
+function setMode (onPass, onFail) {
+  return function (bool) {
+    if (bool)
+      onPass()
+    else
+      onFail()
+  }
+}
+
 
 function getPos(el) {
   for (var lx=0, ly=0;
@@ -6581,14 +6571,14 @@ module.exports = function (tag) {
         /*
          * Unselect all linked nodes
          */
-        if (links[node])
+        if (links)
           links.map(unselector)
       }
 
       /*
        * If user supplied a callback, call it with toggled state
        */
-      cb(toggled)
+      if (cb) cb(toggled)
     })
   }
 

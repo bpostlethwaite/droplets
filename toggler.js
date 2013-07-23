@@ -40,14 +40,14 @@ module.exports = function (tag) {
         /*
          * Unselect all linked nodes
          */
-        if (links[node])
+        if (links)
           links.map(unselector)
       }
 
       /*
        * If user supplied a callback, call it with toggled state
        */
-      cb(toggled)
+      if (cb) cb(toggled)
     })
   }
 
